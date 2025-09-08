@@ -69,7 +69,7 @@ void Acore::Banner::Show(std::string_view applicationName, void(*log)(std::strin
     log(" ##:::::::: ########: ##:::: ##:::: ##:::: ########: ##:::. ##: ########::. #######::::: ##::::. ######::");
     log("..:::::::::........::..:::::..:::::..:::::........::..:::::..::........::::.......::::::..::::::......:::\n");
     log("巫妖王之怒PLAYERBOTS(基于liyunfan PB) 仿官版本. 编译时间: " + FormatBuildDateTimeBaner(__DATE__, __TIME__) + "\n");
-
+    log("这是一个免费版本，如果你付费取得，那就是上当了！This is a Free Repack, If you pay for it, you are a idiot!");
 
     if (logExtraInfo)
     {
