@@ -1544,7 +1544,7 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                     {
                         if (!item)
                         {
-                            LOG_ERROR("looter", "Item is null in GREED roll handling.");
+                            LOG_ERROR("server", "Item is null in GREED roll handling.");
                             return;
                         }
                         ItemPosCountVec dest;
@@ -1557,7 +1557,7 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                             AllowedLooterSet looters = item->GetAllowedLooters();
                             if (looters.empty())
                             {
-                                LOG_ERROR("looter", "AllowedLooterSet is empty for item {}", item);
+                                LOG_ERROR("server", "AllowedLooterSet is empty for item {}", item->itemid);
                                 // 可以选择使用默认的空集合或跳过
                             }
                             Item* _item = player->StoreNewItem(dest, roll->itemid, true, item->randomPropertyId, looters);
