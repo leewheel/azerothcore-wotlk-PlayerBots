@@ -29,7 +29,7 @@ void ScriptMgr::OnDamage(Unit* attacker, Unit* victim, uint32& damage)
 {
     if (!attacker)
     {
-        LOG_ERROR("scripts", "OnDamage called with null attacker, victim={}",
+        LOG_ERROR("scripts", "调用OnDamage函数没有攻击者, 目标={}",
             victim ? victim->GetGUID().ToString() : "nullptr");
         return;
     }

@@ -1542,6 +1542,11 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
 
                     if (rollvote == GREED)
                     {
+                        if (!item)
+                        {
+                            LOG_ERROR("looter", "Item is null in GREED roll handling.");
+                            return;
+                        }
                         ItemPosCountVec dest;
                         InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count);
                         if (msg == EQUIP_ERR_OK)
@@ -1550,6 +1555,11 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                             roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
                             roll->getLoot()->unlootedCount--;
                             AllowedLooterSet looters = item->GetAllowedLooters();
+                            if (looters.empty())
+                            {
+                                LOG_ERROR("looter", "AllowedLooterSet is empty for item {}", item);
+                                // 可以选择使用默认的空集合或跳过
+                            }
                             Item* _item = player->StoreNewItem(dest, roll->itemid, true, item->randomPropertyId, looters);
                             if (_item)
                                 sScriptMgr->OnPlayerGroupRollRewardItem(player, _item, _item->GetCount(), GREED, roll);
