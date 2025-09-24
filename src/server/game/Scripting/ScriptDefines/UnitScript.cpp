@@ -18,91 +18,37 @@
 #include "UnitScript.h"
 #include "ScriptMgr.h"
 #include "ScriptMgrMacros.h"
-
+#include <windows.h> // 用于 GetExceptionCode() / SEH
 
 void ScriptMgr::OnHeal(Unit* healer, Unit* reciever, uint32& gain)
 {
     CALL_ENABLED_HOOKS(UnitScript, UNITHOOK_ON_HEAL, script->OnHeal(healer, reciever, gain));
 }
 
-//void ScriptMgr::OnDamage(Unit* attacker, Unit* victim, uint32& damage)
-//{
-//
-//    if (!attacker)
-//    {
-//        LOG_ERROR("scripts", "调用OnDamage函数没有攻击者, 目标={}",
-//            victim ? victim->GetGUID().ToString() : "nullptr");
-//        return;
-//    }
-//
-//    if (!attacker->IsInWorld())
-//    {
-//        LOG_ERROR("scripts", "OnDamage attacker {} not in world (mapId={}, victim={})",
-//            attacker->GetGUID().ToString(),
-//            attacker->GetMapId(),
-//            victim ? victim->GetGUID().ToString() : "nullptr");
-//        return;
-//    }
-//    CALL_ENABLED_HOOKS(UnitScript, UNITHOOK_ON_DAMAGE, script->OnDamage(attacker, victim, damage));
-//}
-
-// ScriptMgr.cpp (或对应文件)
-#include <windows.h> // 用于 GetExceptionCode() / SEH
-
 void ScriptMgr::OnDamage(Unit* attacker, Unit* victim, uint32& damage)
 {
-    // 环境伤害：没有攻击者
+    if (attacker == nullptr)
+    {
+        return;
+    }
+
     if (!attacker)
     {
-        LOG_DEBUG("scripts", "调用OnDamage函数没有攻击者, (victim={}).",
+        LOG_ERROR("scripts", "调用OnDamage函数没有攻击者, 目标={}",
             victim ? victim->GetGUID().ToString() : "nullptr");
         return;
     }
 
-    // 这里的 IsInWorld 也可能崩（如果 attacker 指针已损坏），
-    // 所以在这段关键回调前做 SEH 包裹，避免进程直接崩溃
-#ifdef _WIN32
-    __try
+    if (!attacker->IsInWorld())
     {
-        // 额外日志（只打印地址/指针，不调用成员以避免二次崩溃）
-        LOG_DEBUG("scripts", "OnDamage: attacker ptr=%p, victim ptr=%p, attackerGuid(try)=%s",
-            static_cast<void*>(attacker),
-            static_cast<void*>(victim),
-            /* 尝试安全获取 GUID 仅在你相信 attacker 有效时，否则删掉下面这一项 */
-            attacker ? attacker->GetGUID().ToString() : "nullptr");
-
-        // NOTE: 如果 attacker->GetGUID() 本身可能崩，则把上面的 GetGUID 调用去掉，
-        // 只打印指针地址即可。
-
-        // 调用脚本 Hook
-        CALL_ENABLED_HOOKS(UnitScript, UNITHOOK_ON_DAMAGE, script->OnDamage(attacker, victim, damage));
+        LOG_ERROR("scripts", "OnDamage attacker {} not in world (mapId={}, victim={})",
+            attacker->GetGUID().ToString(),
+            attacker->GetMapId(),
+            victim ? victim->GetGUID().ToString() : "nullptr");
+        return;
     }
-    __except (EXCEPTION_EXECUTE_HANDLER)
-    {
-        DWORD code = GetExceptionCode();
-        LOG_ERROR("scripts", "OnDamage hook crashed: exception 0x%08X; attacker_ptr=%p, victim_ptr=%p",
-            code, static_cast<void*>(attacker), static_cast<void*>(victim));
-
-        // 可选：把栈快照/线程信息写入文件，或触发你现有的 WheatyExceptionReport 记录机制
-    }
-#else
-    try
-    {
-        CALL_ENABLED_HOOKS(UnitScript, UNITHOOK_ON_DAMAGE, script->OnDamage(attacker, victim, damage));
-    }
-    catch (std::exception const& e)
-    {
-        LOG_ERROR("scripts", "OnDamage hook threw exception: %s; attacker_ptr=%p, victim_ptr=%p",
-            e.what(), static_cast<void*>(attacker), static_cast<void*>(victim));
-    }
-    catch (...)
-    {
-        LOG_ERROR("scripts", "OnDamage hook threw unknown exception; attacker_ptr=%p, victim_ptr=%p",
-            static_cast<void*>(attacker), static_cast<void*>(victim));
-    }
-#endif
+    CALL_ENABLED_HOOKS(UnitScript, UNITHOOK_ON_DAMAGE, script->OnDamage(attacker, victim, damage));
 }
-
 
 void ScriptMgr::ModifyPeriodicDamageAurasTick(Unit* target, Unit* attacker, uint32& damage, SpellInfo const* spellInfo)
 {
