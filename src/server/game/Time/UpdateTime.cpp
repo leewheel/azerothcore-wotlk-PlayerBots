@@ -204,7 +204,7 @@ void WorldUpdateTime::RecordUpdateTime(Milliseconds gameTimeMs, uint32 diff, uin
     std::string currentTimeString = getCurrentTimeAsString();
     std::string memoryUsage = getCurrentMemoryUsage();
 
-    if (_recordUpdateTimeInverval > 0s && diff > _recordUpdateTimeMin.count())
+    if (_recordUpdateTimeInverval > 0ms && diff > _recordUpdateTimeMin.count())
     {
         if (GetMSTimeDiff(_lastRecordTime, gameTimeMs) > _recordUpdateTimeInverval)
         {
