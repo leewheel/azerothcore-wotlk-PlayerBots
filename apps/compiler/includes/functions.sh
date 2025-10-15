@@ -156,6 +156,8 @@ function comp_compile() {
         echo "Setting permissions on binary files"
         find "$AC_BINPATH_FULL"  -mindepth 1 -maxdepth 1 -type f -exec $SUDO chown root:root -- {} +
         find "$AC_BINPATH_FULL"  -mindepth 1 -maxdepth 1 -type f -exec $SUDO chmod u+s  -- {} +
+        $SUDO setcap cap_sys_nice=eip "$AC_BINPATH_FULL/worldserver"
+        $SUDO setcap cap_sys_nice=eip "$AC_BINPATH_FULL/authserver"
       fi
 
       [[ -f "$confDir/worldserver.conf.dist" ]] && \
@@ -164,6 +166,11 @@ function comp_compile() {
           cp -v --no-clobber "$confDir/authserver.conf.dist" "$confDir/authserver.conf"
       [[ -f "$confDir/dbimport.conf.dist" ]] && \
           cp -v --no-clobber "$confDir/dbimport.conf.dist" "$confDir/dbimport.conf"
+      for f in "$confDir/modules/"*.dist
+      do
+          [[ -e $f ]] || break  # handle the case of no *.dist files
+          cp -v --no-clobber "$f" "${f%.dist}";
+      done
 
       echo "Done"
       ;;
