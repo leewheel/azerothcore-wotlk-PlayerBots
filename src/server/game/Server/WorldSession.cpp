@@ -1544,7 +1544,8 @@ void WorldSession::InitializeSessionCallback(CharacterDatabaseQueryHolder const&
     SendTutorialsData();
 }
 
-LockedQueue<WorldPacket*>& WorldSession::GetPacketQueue()
+void WorldSession::SetPacketLogging(bool state)
 {
-    return _recvQueue;
+    if (m_Socket)
+        m_Socket->SetPacketLogging(state);
 }

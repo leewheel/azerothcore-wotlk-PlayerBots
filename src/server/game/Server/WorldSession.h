@@ -1165,6 +1165,7 @@ public:                                                 // opcodes handlers
     {
         return _isBot;
     }
+    void SetPacketLogging(bool state);
 
 private:
     void ProcessQueryCallbacks();
