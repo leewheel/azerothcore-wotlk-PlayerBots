@@ -98,7 +98,21 @@ namespace Gluth {
                 }
             }
 
-            void JustEngagedWith(Unit* who) override
+        void JustEngagedWith(Unit* who) override
+        {
+            BossAI::JustEngagedWith(who);
+            me->SetInCombatWithZone();
+            events.ScheduleEvent(EVENT_MORTAL_WOUND, 10s);
+            events.ScheduleEvent(EVENT_ENRAGE, 22s);
+            events.ScheduleEvent(EVENT_DECIMATE, RAID_MODE(110s, 90s));
+            events.ScheduleEvent(EVENT_BERSERK, 6min);
+            events.ScheduleEvent(EVENT_SUMMON_ZOMBIE, 10s);
+            events.ScheduleEvent(EVENT_CAN_EAT_ZOMBIE, 1s);
+        }
+
+        void JustSummoned(Creature* summon) override
+        {
+            if (summon->GetEntry() == NPC_ZOMBIE_CHOW)
             {
                 BossAI::JustEngagedWith(who);
                 me->SetInCombatWithZone();

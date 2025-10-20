@@ -439,7 +439,7 @@ namespace Kelthuzad {
                     if (Creature* cr = instance->GetCreature(DATA_LICH_KING_BOSS))
                         cr->AI()->Talk(SAY_ANSWER_REQUEST);
 
-                    for (uint8 i = 0; i < RAID_MODE(2, 4); ++i)
+                    for (uint8 i = 0 ; i < RAID_MODE(2, 4); ++i)
                         events.ScheduleEvent(EVENT_SUMMON_GUARDIAN_OF_ICECROWN, Milliseconds(10000 + (i * 5000)));
 
                     break;
@@ -451,6 +451,52 @@ namespace Kelthuzad {
                         cr->AI()->AttackStart(me->GetVictim());
                     }
                     break;
+            }
+            if (!me->HasUnitFlag(UNIT_FLAG_DISABLE_MOVE))
+                DoMeleeAttackIfReady();
+        }
+    };
+};
+
+class boss_kelthuzad_minion : public CreatureScript
+{
+public:
+    boss_kelthuzad_minion() : CreatureScript("boss_kelthuzad_minion") { }
+
+    CreatureAI* GetAI(Creature* pCreature) const override
+    {
+        return GetNaxxramasAI<boss_kelthuzad_minionAI>(pCreature);
+    }
+
+    struct boss_kelthuzad_minionAI : public ScriptedAI
+    {
+        explicit boss_kelthuzad_minionAI(Creature* c) : ScriptedAI(c) { }
+
+        EventMap events;
+        bool callHelp{};
+
+        void Reset() override
+        {
+            me->SetNoCallAssistance(true);
+            callHelp = true;
+            events.Reset();
+        }
+
+        void DoAction(int32 param) override
+        {
+            if (param == ACTION_CALL_HELP_ON)
+            {
+                callHelp = true;
+            }
+            else if (param == ACTION_CALL_HELP_OFF)
+            {
+                callHelp = false;
+            }
+            else if (param == ACTION_SECOND_PHASE)
+            {
+                if (!me->IsInCombat())
+                {
+                    me->DespawnOrUnsummon(500ms);
                 }
                 if (!me->HasUnitFlag(UNIT_FLAG_DISABLE_MOVE))
                     DoMeleeAttackIfReady();

@@ -61,9 +61,16 @@ namespace Grobbulus {
             {
             }
 
-            EventMap events;
-            SummonList summons;
-            uint32 dropSludgeTimer{};
+        void JustEngagedWith(Unit* who) override
+        {
+            BossAI::JustEngagedWith(who);
+            PullChamberAdds();
+            me->SetInCombatWithZone();
+            events.ScheduleEvent(EVENT_POISON_CLOUD, 15s);
+            events.ScheduleEvent(EVENT_MUTATING_INJECTION, 20s);
+            events.ScheduleEvent(EVENT_SLIME_SPRAY, 10s);
+            events.ScheduleEvent(EVENT_BERSERK, RAID_MODE(720s, 540s));
+        }
 
             void Reset() override
             {
@@ -279,6 +286,7 @@ namespace Grobbulus {
             AfterEffectRemove += AuraEffectRemoveFn(spell_grobbulus_mutating_injection_aura::HandleRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
         }
     };
+
 
 }
 

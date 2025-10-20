@@ -259,7 +259,21 @@ namespace Sapphiron {
                     Creature* cr;
                     if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 40.0f, true))
                     {
-                        cr = me->SummonCreature(NPC_BLIZZARD, *target, TEMPSUMMON_TIMED_DESPAWN, 16000);
+                        Creature* cr;
+                        if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, 40.0f, true))
+                        {
+                            cr = me->SummonCreature(NPC_BLIZZARD, *target, TEMPSUMMON_TIMED_DESPAWN, 16000);
+                        }
+                        else
+                        {
+                            cr = me->SummonCreature(NPC_BLIZZARD, *me, TEMPSUMMON_TIMED_DESPAWN, 16000);
+                        }
+                        if (cr)
+                        {
+                            cr->GetMotionMaster()->MoveRandom(40);
+                        }
+                        events.Repeat(RAID_MODE(8000ms, 6500ms));
+                        return;
                     }
                     else
                     {
@@ -328,6 +342,22 @@ namespace Sapphiron {
                                 targets.push_back((*i)->getTarget());
                             }
                         }
+
+                        if (!targets.empty() && iceboltCount)
+                        {
+                            auto itr = targets.begin();
+                            advance(itr, urand(0, targets.size() - 1));
+                            me->CastSpell(*itr, SPELL_ICEBOLT_CAST, false);
+                            blockList.push_back((*itr)->GetGUID());
+                            currentTarget = (*itr)->GetGUID();
+                            --iceboltCount;
+                            events.ScheduleEvent(EVENT_FLIGHT_ICEBOLT, Seconds(uint32(me->GetExactDist(*itr) / 13.0f)));
+                        }
+                        else
+                        {
+                            events.ScheduleEvent(EVENT_FLIGHT_BREATH, 1s);
+                        }
+                        return;
                     }
 
                     if (!targets.empty() && iceboltCount)

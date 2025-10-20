@@ -10278,24 +10278,13 @@ ReputationRank Unit::GetFactionReactionTo(FactionTemplateEntry const* factionTem
 {
     // common faction based check
     if (factionTemplateEntry->IsHostileTo(*targetFactionTemplateEntry))
-    {
         return REP_HOSTILE;
-    }
-
     if (factionTemplateEntry->IsFriendlyTo(*targetFactionTemplateEntry))
-    {
         return REP_FRIENDLY;
-    }
-
     if (targetFactionTemplateEntry->IsFriendlyTo(*factionTemplateEntry))
-    {
         return REP_FRIENDLY;
-    }
-
     if (factionTemplateEntry->factionFlags & FACTION_TEMPLATE_FLAG_HATES_ALL_EXCEPT_FRIENDS)
-    {
         return REP_HOSTILE;
-    }
 
     // neutral by default
     return REP_NEUTRAL;
@@ -21339,4 +21328,19 @@ Player const* Unit::GetClientControlling() const
         }
     }
     return nullptr;
+}
+
+void Unit::SetCannotReachTargetUnit(bool cannotReach, bool isChase)
+{
+    if (cannotReach == m_cannotReachTarget)
+    {
+        return;
+    }
+
+    m_cannotReachTarget = cannotReach;
+}
+
+bool Unit::CanNotReachTarget() const
+{
+    return m_cannotReachTarget;
 }

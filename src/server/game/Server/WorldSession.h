@@ -1159,13 +1159,14 @@ public:                                                 // opcodes handlers
     void InitializeSession();
     void InitializeSessionCallback(CharacterDatabaseQueryHolder const& realmHolder, uint32 clientCacheVersion);
 
+    void SetPacketLogging(bool state);
+
     LockedQueue<WorldPacket*>& GetPacketQueue();
 
     [[nodiscard]] bool IsBot() const
     {
         return _isBot;
     }
-    void SetPacketLogging(bool state);
 
 private:
     void ProcessQueryCallbacks();
@@ -1277,8 +1278,9 @@ private:
     uint32 _timeSyncNextCounter;
     uint32 _timeSyncTimer;
 
-    bool _isBot;
     uint32 _orderCounter;
+
+    bool _isBot;
 
     WorldSession(WorldSession const& right) = delete;
     WorldSession& operator=(WorldSession const& right) = delete;
