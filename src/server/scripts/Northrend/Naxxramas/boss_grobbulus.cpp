@@ -15,6 +15,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "boss_grobbulus.h"
 #include "CreatureScript.h"
 #include "PassiveAI.h"
 #include "ScriptedCreature.h"
@@ -23,7 +24,6 @@
 #include "SpellScript.h"
 #include "SpellScriptLoader.h"
 #include "naxxramas.h"
-#include "boss_grobbulus.h"
 
 
 using namespace Grobbulus;
