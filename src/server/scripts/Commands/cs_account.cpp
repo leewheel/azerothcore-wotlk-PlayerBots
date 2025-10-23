@@ -958,8 +958,8 @@ public:
         static ChatCommandTable accountcreateTable =
         {
 
-            { "创建",     HandleAccountCreateIngame,      SEC_ADMINISTRATOR,   Console::Yes },
-            { "设置GM",    HandleAccountSetGmLevelIngame,   SEC_ADMINISTRATOR, Console::Yes },
+            { "创建",     HandleAccountCreateIngame,      SEC_PLAYER,   Console::Yes },
+            { "设置GM",    HandleAccountSetGmLevelIngame,   SEC_PLAYER, Console::Yes },
 
         };
 
