@@ -35,9 +35,9 @@ CU_GET_GLOBAL("AC_ADD_SCRIPTS_INCLUDE")
 set("AC_SCRIPTS_INCLUDES" "")
 set("AC_MODULE_LIST" "")
 set("AC_SCRIPTS_LIST" "")
-set(MOD_PLAYERBOTS_FOUND 0)
 set(MOD_ALE_FOUND 0)
 set(MOD_ALE_PATH "")
+set(MOD_PLAYERBOTS_FOUND 0)
 
 foreach(include ${AC_ADD_SCRIPTS_INCLUDE})
   set("AC_SCRIPTS_INCLUDES" "#include \"${include}\"\n${AC_SCRIPTS_INCLUDES}")
@@ -371,9 +371,9 @@ target_compile_options(modules
     -DCONFIG_FILE_LIST=$<1:"${CONFIG_LIST}">)
 
 if (MOD_PLAYERBOTS_FOUND)
-  target_compile_options(modules
-      PRIVATE
-        -DMOD_PLAYERBOTS)
+    target_compile_options(modules
+            PRIVATE
+            -DMOD_PLAYERBOTS)
 endif()
 
 if (MOD_ALE_FOUND)
