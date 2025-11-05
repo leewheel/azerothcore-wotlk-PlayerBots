@@ -2151,7 +2151,7 @@ void Guild::BroadcastToGuild(WorldSession* session, bool officerOnly, std::strin
         ChatHandler::BuildChatPacket(data, officerOnly ? CHAT_MSG_OFFICER : CHAT_MSG_GUILD, Language(language), session->GetPlayer(), nullptr, msg);
         for (auto const& [guid, member] : m_members)
             if (Player* player = member.FindPlayer())
-                if (_HasRankRight(player, officerOnly ? GR_RIGHT_OFFCHATLISTEN : GR_RIGHT_GCHATLISTEN) && !player->GetSocial()->HasIgnore(session->GetPlayer()->GetGUID()))
+                if (HasRankRight(player, officerOnly ? GR_RIGHT_OFFCHATLISTEN : GR_RIGHT_GCHATLISTEN) && !player->GetSocial()->HasIgnore(session->GetPlayer()->GetGUID()))
                     player->SendDirectMessage(&data);
     }
 }
@@ -2206,13 +2206,13 @@ void Guild::MassInviteToEvent(WorldSession* session, uint32 minLevel, uint32 max
 // Members handling
 bool Guild::AddMember(ObjectGuid guid, uint8 rankId)
 {
-    Player* player = ObjectAccessor::FindConnectedPlayer(guid);
-
     Player* leader = nullptr;
     if (this->GetLeaderGUID())
     {
         leader = ObjectAccessor::FindConnectedPlayer(this->GetLeaderGUID());
     }
+
+    Player* player = ObjectAccessor::FindConnectedPlayer(guid);
 
     // Player cannot be in guild
     if (player)
