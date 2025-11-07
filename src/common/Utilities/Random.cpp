@@ -41,9 +41,25 @@ int32 irand(int32 min, int32 max)
     return uid(engine);
 }
 
+//uint32 urand(uint32 min, uint32 max)
+//{
+//    ASSERT(max >= min);
+//    std::uniform_int_distribution<uint32> uid(min, max);
+//    return uid(engine);
+//}
+
 uint32 urand(uint32 min, uint32 max)
 {
+#if defined(_DEBUG) || defined(DEBUG)
     ASSERT(max >= min);
+#endif
+
+    if (max < min)
+    {
+        std::swap(max, min);
+        LOG_ERROR("server", "请检查你设置的参数最大值{},小于最小值了{}，程序已经自动将其调换，但是还请修改成正确范围！",max,min);
+    }
+
     std::uniform_int_distribution<uint32> uid(min, max);
     return uid(engine);
 }
