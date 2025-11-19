@@ -1,14 +1,14 @@
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Affero General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your
+ * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for
  * more details.
  *
  * You should have received a copy of the GNU General Public License along
@@ -38,7 +38,7 @@
 #include "World.h"
 #include <atomic>
 
-// Add support old api modules
+ // Add support old api modules
 #include "AllScriptsObjects.h"
 
 class AuctionHouseObject;
@@ -115,14 +115,14 @@ public:
     bool IsDatabaseBound() const { return false; }
 
     [[nodiscard]] virtual bool OnPlayerbotCheckLFGQueue(lfg::Lfg5Guids const& /*guidsList*/) { return true; }
-    virtual void OnPlayerbotCheckKillTask(Player* /*player*/, Unit* /*victim*/) { }
-    virtual void OnPlayerbotCheckPetitionAccount(Player* /*player*/, bool& /*found*/) { }
+    virtual void OnPlayerbotCheckKillTask(Player* /*player*/, Unit* /*victim*/) {}
+    virtual void OnPlayerbotCheckPetitionAccount(Player* /*player*/, bool& /*found*/) {}
     [[nodiscard]] virtual bool OnPlayerbotCheckUpdatesToSend(Player* /*player*/) { return true; }
-    virtual void OnPlayerbotPacketSent(Player* /*player*/, WorldPacket const* /*packet*/) { }
-    virtual void OnPlayerbotUpdate(uint32 /*diff*/) { }
-    virtual void OnPlayerbotUpdateSessions(Player* /*player*/) { }
-    virtual void OnPlayerbotLogout(Player* /*player*/) { }
-    virtual void OnPlayerbotLogoutBots() { }
+    virtual void OnPlayerbotPacketSent(Player* /*player*/, WorldPacket const* /*packet*/) {}
+    virtual void OnPlayerbotUpdate(uint32 /*diff*/) {}
+    virtual void OnPlayerbotUpdateSessions(Player* /*player*/) {}
+    virtual void OnPlayerbotLogout(Player* /*player*/) {}
+    virtual void OnPlayerbotLogoutBots() {}
 };
 
 class ScriptMgr
@@ -340,7 +340,12 @@ public: /* PlayerScript */
     void OnPlayerDuelRequest(Player* target, Player* challenger);
     void OnPlayerDuelStart(Player* player1, Player* player2);
     void OnPlayerDuelEnd(Player* winner, Player* loser, DuelCompleteType type);
+    void OnPlayerChat(Player* player, uint32 type, uint32 lang, std::string& msg);
     void OnPlayerBeforeSendChatMessage(Player* player, uint32& type, uint32& lang, std::string& msg);
+    void OnPlayerChat(Player* player, uint32 type, uint32 lang, std::string& msg, Player* receiver);
+    void OnPlayerChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group);
+    void OnPlayerChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild);
+    void OnPlayerChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel);
     void OnPlayerEmote(Player* player, uint32 emote);
     void OnPlayerTextEmote(Player* player, uint32 textEmote, uint32 emoteNum, ObjectGuid guid);
     void OnPlayerSpellCast(Player* player, Spell* spell, bool skipCheck);
@@ -358,7 +363,7 @@ public: /* PlayerScript */
     bool OnPlayerBeforeTeleport(Player* player, uint32 mapid, float x, float y, float z, float orientation, uint32 options, Unit* target);
     void OnPlayerUpdateFaction(Player* player);
     void OnPlayerAddToBattleground(Player* player, Battleground* bg);
-    void OnPlayerQueueRandomDungeon(Player* player, uint32 & rDungeonId);
+    void OnPlayerQueueRandomDungeon(Player* player, uint32& rDungeonId);
     void OnPlayerRemoveFromBattleground(Player* player, Battleground* bg);
     void OnPlayerAchievementComplete(Player* player, AchievementEntry const* achievement);
     bool OnPlayerBeforeAchievementComplete(Player* player, AchievementEntry const* achievement);
@@ -513,7 +518,7 @@ public: /* GuildScript */
     void OnGuildMemberWitdrawMoney(Guild* guild, Player* player, uint32& amount, bool isRepair);
     void OnGuildMemberDepositMoney(Guild* guild, Player* player, uint32& amount);
     void OnGuildItemMove(Guild* guild, Player* player, Item* pItem, bool isSrcBank, uint8 srcContainer, uint8 srcSlotId,
-                         bool isDestBank, uint8 destContainer, uint8 destSlotId);
+        bool isDestBank, uint8 destContainer, uint8 destSlotId);
     void OnGuildEvent(Guild* guild, uint8 eventType, ObjectGuid::LowType playerGuid1, ObjectGuid::LowType playerGuid2, uint8 newRank);
     void OnGuildBankEvent(Guild* guild, uint8 eventType, uint8 tabId, ObjectGuid::LowType playerGuid, uint32 itemOrMoney, uint16 itemStackCount, uint8 destTabId);
     bool CanGuildSendBankList(Guild const* guild, WorldSession* session, uint8 tabId, bool sendAllSlots);
@@ -730,7 +735,7 @@ public: /* LootScript */
     void OnLootMoney(Player* player, uint32 gold);
 
 public: /* PlayerbotScript */
-    
+
     bool OnPlayerbotCheckLFGQueue(lfg::Lfg5Guids const& guidsList);
     void OnPlayerbotCheckKillTask(Player* player, Unit* victim);
     void OnPlayerbotCheckPetitionAccount(Player* player, bool& found);
@@ -768,7 +773,7 @@ public:
     typedef std::map<uint32, TScript*> ScriptMap;
     typedef typename ScriptMap::iterator ScriptMapIterator;
 
-    typedef std::vector<std::pair<TScript*,std::vector<uint16>>> ScriptVector;
+    typedef std::vector<std::pair<TScript*, std::vector<uint16>>> ScriptVector;
     typedef typename ScriptVector::iterator ScriptVectorIterator;
 
     typedef std::vector<std::vector<TScript*>> EnabledHooksVector;
@@ -876,7 +881,7 @@ public:
                     // The script uses a script name from database, but isn't assigned to anything.
                     if (script->GetName().find("Smart") == std::string::npos)
                         LOG_ERROR("sql.sql", "Script named '{}' is not assigned in the database.",
-                                         script->GetName());
+                            script->GetName());
                 }
             }
             else
@@ -913,7 +918,7 @@ private:
             if (it->second == script)
             {
                 LOG_ERROR("scripts", "Script '{}' has same memory pointer as '{}'.",
-                               script->GetName(), it->second->GetName());
+                    script->GetName(), it->second->GetName());
 
                 return false;
             }
@@ -928,7 +933,7 @@ private:
 
 // Instantiate static members of ScriptRegistry.
 template<class TScript> std::map<uint32, TScript*> ScriptRegistry<TScript>::ScriptPointerList;
-template<class TScript> std::vector<std::pair<TScript*,std::vector<uint16>>> ScriptRegistry<TScript>::ALScripts;
+template<class TScript> std::vector<std::pair<TScript*, std::vector<uint16>>> ScriptRegistry<TScript>::ALScripts;
 template<class TScript> std::vector<std::vector<TScript*>> ScriptRegistry<TScript>::EnabledHooks;
 template<class TScript> uint32 ScriptRegistry<TScript>::_scriptIdCounter = 0;
 
