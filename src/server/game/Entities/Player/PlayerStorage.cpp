@@ -6333,7 +6333,7 @@ void Player::_LoadQuestStatus(PreparedQueryResult result)
                     ++slot;
                 }
 
-                LOG_DEBUG("entities.player.loading", "Quest status is {{}} for quest {{}} for player ({})", questStatusData.Status, quest_id, GetGUID().ToString());
+                LOG_DEBUG("entities.player.loading", "Quest status is ({}) for quest ({}) for player ({})", questStatusData.Status, quest_id, GetGUID().ToString());
             }
         } while (result->NextRow());
     }
@@ -6444,7 +6444,7 @@ void Player::_LoadWeeklyQuestStatus(PreparedQueryResult result)
                 continue;
 
             m_weeklyquests.insert(quest_id);
-            LOG_DEBUG("entities.player.loading", "Weekly quest {{}} cooldown for player ({})", quest_id, GetGUID().ToString());
+            LOG_DEBUG("entities.player.loading", "Weekly quest ({}) cooldown for player ({})", quest_id, GetGUID().ToString());
         } while (result->NextRow());
     }
 
@@ -6467,7 +6467,7 @@ void Player::_LoadSeasonalQuestStatus(PreparedQueryResult result)
                 continue;
 
             m_seasonalquests[event_id].insert(quest_id);
-            LOG_DEBUG("entities.player.loading", "Seasonal quest {{}} cooldown for player ({})", quest_id, GetGUID().ToString());
+            LOG_DEBUG("entities.player.loading", "Seasonal quest ({}) cooldown for player ({})", quest_id, GetGUID().ToString());
         } while (result->NextRow());
     }
 
@@ -6489,7 +6489,7 @@ void Player::_LoadMonthlyQuestStatus(PreparedQueryResult result)
                 continue;
 
             m_monthlyquests.insert(quest_id);
-            LOG_DEBUG("entities.player.loading", "Monthly quest {{}} cooldown for player ({})", quest_id, GetGUID().ToString());
+            LOG_DEBUG("entities.player.loading", "Monthly quest ({}) cooldown for player ({})", quest_id, GetGUID().ToString());
         } while (result->NextRow());
     }
 
