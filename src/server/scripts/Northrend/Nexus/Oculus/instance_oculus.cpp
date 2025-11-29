@@ -168,7 +168,14 @@ public:
                     m_auiEncounter[DATA_EREGOS] = data;
                     if (data == DONE)
                     {
-                        DoRespawnGameObject(EregosCacheGUID, 7 * DAY);
+                        if (CONFIG_CACHE_OF_EREGOS_RESPAWN_TIME)
+                        {
+                            DoRespawnGameObject(EregosCacheGUID, 0);
+                        }
+                        else
+                        {
+                            DoRespawnGameObject(EregosCacheGUID, 7 * DAY);
+                        }
 
                         if (GameObject* cache = instance->GetGameObject(EregosCacheGUID))
                         {

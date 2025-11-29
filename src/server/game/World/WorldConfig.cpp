@@ -669,4 +669,6 @@ void WorldConfig::BuildConfigCache()
     SetConfigValue<uint32>(CONFIG_SCOURGEINVASION_COUNTER_THIRD, "ScourgeInvasion.CounterThird", 150);
 
     SetConfigValue<std::string>(CONFIG_NEW_CHAR_STRING, "PlayerStart.String", "");
+
+    SetConfigValue<bool>(CONFIG_CACHE_OF_EREGOS_RESPAWN_TIME, "CacheOfEregos.RespawnTime", true);
 }
