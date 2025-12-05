@@ -1474,23 +1474,52 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                     ItemPosCountVec dest;
                     LootItem* item = &(roll->itemSlot >= roll->getLoot()->items.size() ? roll->getLoot()->quest_items[roll->itemSlot - roll->getLoot()->items.size()] : roll->getLoot()->items[roll->itemSlot]);
                     InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count);
+                    //if (msg == EQUIP_ERR_OK)
+                    //{
+                    //    item->is_looted = true;
+                    //    roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
+                    //    roll->getLoot()->unlootedCount--;
+                    //    AllowedLooterSet looters = item->GetAllowedLooters();
+                    //    Item* _item = player->StoreNewItem(dest, roll->itemid, true, item->randomPropertyId, looters);
+                    //    if (_item)
+                    //        sScriptMgr->OnPlayerGroupRollRewardItem(player, _item, _item->GetCount(), NEED, roll);
+                    //    player->UpdateLootAchievements(item, roll->getLoot());
+                    //}
+                    //else
+                    //{
+                    //    item->is_blocked = false;
+                    //    item->rollWinnerGUID = player->GetGUID();
+                    //    player->SendEquipError(msg, nullptr, nullptr, roll->itemid);
+                    //}
                     if (msg == EQUIP_ERR_OK)
                     {
-                        item->is_looted = true;
-                        roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
-                        roll->getLoot()->unlootedCount--;
+                        Loot* loot = roll->getLoot();
+                        if (!loot || !item)
+                        {
+                            LOG_ERROR("group.roll", "Invalid loot or item in CountTheRoll (itemid {})", roll->itemid);
+                            return;
+                        }
+
+                        // 1. 预先复制所有必要数据（必须在 loot 被修改前）
                         AllowedLooterSet looters = item->GetAllowedLooters();
-                        Item* _item = player->StoreNewItem(dest, roll->itemid, true, item->randomPropertyId, looters);
+                        int32 randomPropId = item->randomPropertyId;
+                        uint8 count = item->count;
+
+                        // 2. 在 item 未被修改、未被 NotifyItemRemoved 前处理成就
+                        player->UpdateLootAchievements(item, loot);
+
+                        // 3. 修改 loot 结构（此操作可能会使 item 内存无效）
+                        item->is_looted = true;
+                        loot->NotifyItemRemoved(roll->itemSlot);
+                        loot->unlootedCount--;
+
+                        // 4. Store item（使用提前保存的安全数据）
+                        Item* _item = player->StoreNewItem(dest, roll->itemid, true, randomPropId, looters);
+
                         if (_item)
                             sScriptMgr->OnPlayerGroupRollRewardItem(player, _item, _item->GetCount(), NEED, roll);
-                        player->UpdateLootAchievements(item, roll->getLoot());
                     }
-                    else
-                    {
-                        item->is_blocked = false;
-                        item->rollWinnerGUID = player->GetGUID();
-                        player->SendEquipError(msg, nullptr, nullptr, roll->itemid);
-                    }
+
                 }
             }
             else
