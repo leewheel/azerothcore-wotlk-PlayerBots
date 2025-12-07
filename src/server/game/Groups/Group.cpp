@@ -1491,33 +1491,35 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                     //    item->rollWinnerGUID = player->GetGUID();
                     //    player->SendEquipError(msg, nullptr, nullptr, roll->itemid);
                     //}
+// ---------- BEGIN PATCH: NEED branch safe handling ----------
                     if (msg == EQUIP_ERR_OK)
                     {
-                        Loot* loot = roll->getLoot();
-                        if (!loot || !item)
-                        {
-                            LOG_ERROR("group.roll", "Invalid loot or item in CountTheRoll (itemid {})", roll->itemid);
-                            return;
-                        }
-
-                        // 1. 预先复制所有必要数据（必须在 loot 被修改前）
-                        AllowedLooterSet looters = item->GetAllowedLooters();
+                        // 1) 在可能使 item 指针失效的操作（NotifyItemRemoved/容器修改）之前
+                        //    预先拷贝所有后续会使用到的数据（按值）。
+                        AllowedLooterSet looters = item->GetAllowedLooters();      // 按值拷贝一份安全副本
                         int32 randomPropId = item->randomPropertyId;
-                        uint8 count = item->count;
+                        uint32 itemCount = item->count;
+                        uint32 itemId = roll->itemid;
 
-                        // 2. 在 item 未被修改、未被 NotifyItemRemoved 前处理成就
-                        player->UpdateLootAchievements(item, loot);
+                        // 2) 如果 UpdateLootAchievements 依赖于 item 指针内容，先调用它（此时 item 仍然有效）
+                        player->UpdateLootAchievements(item, roll->getLoot());
 
-                        // 3. 修改 loot 结构（此操作可能会使 item 内存无效）
+                        // 3) 修改 item 状态并从 loot 中移除（这一步可能会导致 items vector 重排，从而使 item 指针失效）
                         item->is_looted = true;
-                        loot->NotifyItemRemoved(roll->itemSlot);
-                        loot->unlootedCount--;
+                        roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
+                        roll->getLoot()->unlootedCount--;
 
-                        // 4. Store item（使用提前保存的安全数据）
-                        Item* _item = player->StoreNewItem(dest, roll->itemid, true, randomPropId, looters);
-
+                        // 4) 使用已保存的副本进行发放（避免访问已失效的 item 指针）
+                        Item* _item = player->StoreNewItem(dest, itemId, true, randomPropId, looters);
                         if (_item)
+                        {
                             sScriptMgr->OnPlayerGroupRollRewardItem(player, _item, _item->GetCount(), NEED, roll);
+                        }
+                        else
+                        {
+                            // 防御性处理：记录日志，方便排查存储失败的情况
+                            LOG_ERROR("server", "StoreNewItem failed in NEED roll for item {} (player {})", itemId, player->GetGUID().GetRawValue());
+                        }
                     }
 
                 }
@@ -1578,21 +1580,48 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                         }
                         ItemPosCountVec dest;
                         InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count);
+                        //if (msg == EQUIP_ERR_OK)
+                        //{
+                        //    item->is_looted = true;
+                        //    roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
+                        //    roll->getLoot()->unlootedCount--;
+                        //    AllowedLooterSet looters = item->GetAllowedLooters();
+                        //    if (looters.empty())
+                        //    {
+                        //        LOG_ERROR("server", "AllowedLooterSet is empty for item {}", item->itemid);
+                        //        // 可以选择使用默认的空集合或跳过
+                        //    }
+                        //    Item* _item = player->StoreNewItem(dest, roll->itemid, true, item->randomPropertyId, looters);
+                        //    if (_item)
+                        //        sScriptMgr->OnPlayerGroupRollRewardItem(player, _item, _item->GetCount(), GREED, roll);
+                        //    player->UpdateLootAchievements(item, roll->getLoot());
+                        //}
                         if (msg == EQUIP_ERR_OK)
                         {
+                            // 1) 先按值拷贝将要使用的数据（避免在 NotifyItemRemoved 后使用失效指针）
+                            AllowedLooterSet looters = item->GetAllowedLooters();
+                            int32 randomPropId = item->randomPropertyId;
+                            uint32 itemCount = item->count;
+                            uint32 itemId = roll->itemid;
+
+                            // 2) 先更新成就（如果需要 item 指针内容）
+                            player->UpdateLootAchievements(item, roll->getLoot());
+
+                            // 3) 修改与移除
                             item->is_looted = true;
                             roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
                             roll->getLoot()->unlootedCount--;
-                            AllowedLooterSet looters = item->GetAllowedLooters();
-                            if (looters.empty())
-                            {
-                                LOG_ERROR("server", "AllowedLooterSet is empty for item {}", item->itemid);
-                                // 可以选择使用默认的空集合或跳过
-                            }
-                            Item* _item = player->StoreNewItem(dest, roll->itemid, true, item->randomPropertyId, looters);
+
+                            // 4) 发放物品（使用已保存的副本）
+                            Item* _item = player->StoreNewItem(dest, itemId, true, randomPropId, looters);
                             if (_item)
+                            {
                                 sScriptMgr->OnPlayerGroupRollRewardItem(player, _item, _item->GetCount(), GREED, roll);
-                            player->UpdateLootAchievements(item, roll->getLoot());
+                            }
+                            else
+                            {
+                                LOG_ERROR("server", "StoreNewItem failed in GREED roll for item {} (player {})", itemId, player->GetGUID().GetRawValue());
+                            }
                         }
                         else
                         {
