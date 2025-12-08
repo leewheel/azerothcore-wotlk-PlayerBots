@@ -671,20 +671,20 @@ namespace Thaddius {
         };
     };
 
-    class at_thaddius_entrance : public OnlyOnceAreaTriggerScript
-    {
-    public:
-        at_thaddius_entrance() : OnlyOnceAreaTriggerScript("at_thaddius_entrance") {}
+class at_thaddius_entrance : public OnlyOnceAreaTriggerScript
+{
+public:
+    at_thaddius_entrance() : OnlyOnceAreaTriggerScript("at_thaddius_entrance") { }
 
-        bool _OnTrigger(Player* player, const AreaTrigger* /*trigger*/) override
-        {
-            if (InstanceScript* instance = player->GetInstanceScript())
-                if (instance->GetBossState(BOSS_THADDIUS) != DONE)
-                    if (Creature* thaddius = instance->GetCreature(DATA_THADDIUS_BOSS))
-                        thaddius->AI()->Talk(SAY_GREET);
-            return false;
-        }
-    };
+    bool _OnTrigger(Player* player, const AreaTrigger* /*trigger*/) override
+    {
+        if (InstanceScript* instance = player->GetInstanceScript())
+            if (instance->GetBossState(BOSS_THADDIUS) != DONE)
+                if (Creature* thaddius = instance->GetCreature(DATA_THADDIUS_BOSS))
+                    thaddius->AI()->Talk(SAY_GREET);
+        return false;
+    }
+};
 
 }
 
