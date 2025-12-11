@@ -59,9 +59,6 @@ private:
     bool _forceDestination;
     bool _reverseOrientation;
     ObjectGuid _chargeTargetGUID;
-    /// Added by mod-playerbots
-    bool _orientationInversed;
-    /// End added
     ForcedMovement _forcedMovement;
     ObjectGuid _facingTargetGuid;
     std::optional<AnimTier> _animTier;
