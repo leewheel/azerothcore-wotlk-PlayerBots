@@ -17,10 +17,11 @@
 
 // This is where scripts' loading functions should be declared:
 // void MyExampleScript()
-
+void AddSC_quest_choes_of_Tortured_Souls();
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
 void AddCustomScripts()
 {
     // MyExampleScript()
+    AddSC_quest_choes_of_Tortured_Souls();
 }
