@@ -222,6 +222,13 @@ public:
         if (!(_cleanFlag & MMCF_UPDATE))
             DirectExpireSlot(slot, reset);
     }
+   //PB by leewheel
+    void MovePointBackwards(uint32 id, float x, float y, float z,
+        bool generatePath,
+        bool forceDestination,
+        MovementSlot slot,
+        float orientation = 0.0f);
+    //end pb
 
     void MoveIdle();
     void MoveTargetedHome(bool walk = false);
