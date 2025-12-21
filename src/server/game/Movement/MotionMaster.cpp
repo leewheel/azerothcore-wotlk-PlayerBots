@@ -924,7 +924,7 @@ void MotionMaster::MoveRotate(uint32 time, RotateDirection direction)
 }
 
 #ifdef MOD_PLAYERBOTS
-void MotionMaster::MoveKnockbackFrom(float srcX, float srcY, float speedXY, float speedZ)
+void MotionMaster::MoveKnockbackFromForPlayer(float srcX, float srcY, float speedXY, float speedZ)
 {
     if (speedXY <= 0.1f)
         return;
@@ -946,54 +946,53 @@ void MotionMaster::MoveKnockbackFrom(float srcX, float srcY, float speedXY, floa
 }
 
 // Similar to MovePoint except setting orientationInversed
-//void MotionMaster::MovePointBackwards(uint32 id, float x, float y, float z, bool generatePath, bool forceDestination, MovementSlot slot, float orientation /* = 0.0f*/)
-//{
-//    if (_owner->HasUnitFlag(UNIT_FLAG_DISABLE_MOVE))
-//        return;
-//
-//    if (_owner->IsPlayer())
-//    {
-//        LOG_DEBUG("movement.motionmaster", "Player ({}) targeted point (Id: {} X: {} Y: {} Z: {})", _owner->GetGUID().ToString(), id, x, y, z);
-//        Mutate(new PointMovementGenerator<Player>(id, x, y, z, FORCED_MOVEMENT_NONE, 0.0f, orientation, nullptr, generatePath, forceDestination, ObjectGuid::Empty, true), slot);
-//    }
-//    else
-//    {
-//        LOG_DEBUG("movement.motionmaster", "Creature ({}) targeted point (ID: {} X: {} Y: {} Z: {})", _owner->GetGUID().ToString(), id, x, y, z);
-//        Mutate(new PointMovementGenerator<Creature>(id, x, y, z, FORCED_MOVEMENT_NONE, 0.0f, orientation, nullptr, generatePath, forceDestination, ObjectGuid::Empty, true), slot);
-//    }
-//}
-void MotionMaster::MovePointBackwards(uint32 id, float x, float y, float z,
-    bool generatePath, bool forceDestination,
-    MovementSlot slot, float orientation /* = 0.0f */)
+void MotionMaster::MovePointBackwards(uint32 id, float x, float y, float z, bool generatePath, bool forceDestination, MovementSlot slot, float orientation /* = 0.0f*/)
 {
-    // 保留原来的移动禁用判断
     if (_owner->HasUnitFlag(UNIT_FLAG_DISABLE_MOVE))
         return;
 
-
-    LOG_DEBUG("movement.motionmaster",
-        "{} ({}) targeted point (Id: {} X: {} Y: {} Z: {})",
-        _owner->IsPlayer() ? "Player" : "Creature",
-        _owner->GetGUID().ToString(), id, x, y, z);
-
-    // 关键：用新的 MovePoint 接口来实现原来的逻辑
-    // 对应旧代码里的参数：
-    //   forcedMovement = FORCED_MOVEMENT_NONE
-    //   speed          = 0.0f
-    //   orientation    = 传进来的 orientation
-    //   generatePath   = 传进来的 generatePath
-    //   forceDestination = 传进来的 forceDestination
-    //   slot           = 传进来的 slot
-    //   animTier       = std::nullopt（以前没有这个概念）
-    MovePoint(id, x, y, z,
-        FORCED_MOVEMENT_NONE,   // forcedMovement
-        0.0f,                   // speed
-        orientation,            // orientation
-        generatePath,
-        forceDestination,
-        slot,
-        std::nullopt);          // animTier
+    if (_owner->IsPlayer())
+    {
+        LOG_DEBUG("movement.motionmaster", "Player ({}) targeted point (Id: {} X: {} Y: {} Z: {})", _owner->GetGUID().ToString(), id, x, y, z);
+        Mutate(
+            new PointMovementGenerator<Player>(
+                id,
+                x, y, z,
+                FORCED_MOVEMENT_NONE,
+                0.0f,
+                orientation,
+                nullptr,
+                generatePath,
+                forceDestination,
+                std::nullopt,              // ✅ animTier
+                ObjectGuid::Empty,         // chargeTargetGUID
+                true                        // reverseOrientation
+            ),
+            slot
+        );
+    }
+    else
+    {
+        LOG_DEBUG("movement.motionmaster", "Creature ({}) targeted point (ID: {} X: {} Y: {} Z: {})", _owner->GetGUID().ToString(), id, x, y, z);
+        Mutate(
+            new PointMovementGenerator<Creature>(
+                id,
+                x, y, z,
+                FORCED_MOVEMENT_NONE,
+                0.0f,
+                orientation,
+                nullptr,
+                generatePath,
+                forceDestination,
+                std::nullopt,
+                ObjectGuid::Empty,
+                true
+            ),
+            slot
+        );
+    }
 }
+
 
 #endif
 

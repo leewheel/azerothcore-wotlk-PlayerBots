@@ -222,13 +222,6 @@ public:
         if (!(_cleanFlag & MMCF_UPDATE))
             DirectExpireSlot(slot, reset);
     }
-   //PB by leewheel
-    void MovePointBackwards(uint32 id, float x, float y, float z,
-        bool generatePath,
-        bool forceDestination,
-        MovementSlot slot,
-        float orientation = 0.0f);
-    //end pb
 
     void MoveIdle();
     void MoveTargetedHome(bool walk = false);
@@ -249,6 +242,8 @@ public:
     void MovePoint(uint32 id, float x, float y, float z, ForcedMovement forcedMovement = FORCED_MOVEMENT_NONE, float speed = 0.f, float orientation = 0.0f, bool generatePath = true, bool forceDestination = true, MovementSlot slot = MOTION_SLOT_ACTIVE, std::optional<AnimTier> animTier = std::nullopt);
     void MoveSplinePath(Movement::PointsArray* path, ForcedMovement forcedMovement = FORCED_MOVEMENT_NONE);
     void MovePath(uint32 path_id, ForcedMovement forcedMovement = FORCED_MOVEMENT_NONE, PathSource pathSource = PathSource::WAYPOINT_MGR);
+
+
 
     // These two movement types should only be used with creatures having landing/takeoff animations
     void MoveLand(uint32 id, Position const& pos, float speed = 0.0f);
@@ -273,7 +268,10 @@ public:
     void MoveDistract(uint32 time);
     void MoveWaypoint(uint32 path_id, bool repeatable, PathSource pathSource = PathSource::WAYPOINT_MGR);
     void MoveRotate(uint32 time, RotateDirection direction);
-
+#ifdef MOD_PLAYERBOTS
+    void MoveKnockbackFromForPlayer(float srcX, float srcY, float speedXY, float speedZ);
+    void MovePointBackwards(uint32 id, float x, float y, float z, bool generatePath = true, bool forceDestination = true, MovementSlot slot = MOTION_SLOT_ACTIVE, float orientation = 0.0f);
+#endif
     [[nodiscard]] MovementGeneratorType GetCurrentMovementGeneratorType() const;
     [[nodiscard]] MovementGeneratorType GetMotionSlotType(int slot) const;
     bool HasMovementGeneratorType(MovementGeneratorType type) const;
