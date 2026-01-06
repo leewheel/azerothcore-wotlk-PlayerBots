@@ -1476,14 +1476,25 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                     InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count);
                     if (msg == EQUIP_ERR_OK)
                     {
+                        // 1. 【修复关键点】在移除物品之前，先按值拷贝所有需要的数据
+                        // 此时 item 指针依然有效
+                        AllowedLooterSet looters = item->GetAllowedLooters();
+                        int32 randomPropId = item->randomPropertyId;
+                        uint32 itemId = roll->itemid;
+
+                        // 2. 如果 UpdateLootAchievements 必须在发放前调用，且依赖 item，也放在这里
+                        player->UpdateLootAchievements(item, roll->getLoot());
+
+                        // 3. 标记为已拾取并从 Loot 中移除
+                        // 这一行之后，item 指针失效，绝对不能再访问 item 的任何成员！
                         item->is_looted = true;
                         roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
                         roll->getLoot()->unlootedCount--;
-                        AllowedLooterSet looters = item->GetAllowedLooters();
-                        Item* _item = player->StoreNewItem(dest, roll->itemid, true, item->randomPropertyId, looters);
+
+                        // 4. 使用之前保存的局部变量进行发放，而不是再访问 item
+                        Item* _item = player->StoreNewItem(dest, itemId, true, randomPropId, looters);
                         if (_item)
                             sScriptMgr->OnPlayerGroupRollRewardItem(player, _item, _item->GetCount(), NEED, roll);
-                        player->UpdateLootAchievements(item, roll->getLoot());
                     }
                     else
                     {
@@ -1546,14 +1557,23 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                         InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count);
                         if (msg == EQUIP_ERR_OK)
                         {
+                            // 1. 【修复关键点】先拷贝数据
+                            AllowedLooterSet looters = item->GetAllowedLooters();
+                            int32 randomPropId = item->randomPropertyId;
+                            uint32 itemId = roll->itemid;
+
+                            // 2. 更新成就（依赖 item）
+                            player->UpdateLootAchievements(item, roll->getLoot());
+
+                            // 3. 移除物品（item 失效）
                             item->is_looted = true;
                             roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
                             roll->getLoot()->unlootedCount--;
-                            AllowedLooterSet looters = item->GetAllowedLooters();
-                            Item* _item = player->StoreNewItem(dest, roll->itemid, true, item->randomPropertyId, looters);
+
+                            // 4. 使用保存的数据发放
+                            Item* _item = player->StoreNewItem(dest, itemId, true, randomPropId, looters);
                             if (_item)
                                 sScriptMgr->OnPlayerGroupRollRewardItem(player, _item, _item->GetCount(), GREED, roll);
-                            player->UpdateLootAchievements(item, roll->getLoot());
                         }
                         else
                         {
