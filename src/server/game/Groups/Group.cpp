@@ -1584,33 +1584,49 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                     }
                     else if (rollvote == DISENCHANT)
                     {
+                        // 1. 【修复关键点】在移除物品之前，先拷贝数据
+                        uint32 itemId = roll->itemid;
+                        uint32 itemCount = item->count; // <--- 必须在这里保存 count
+                        uint32 disenchantId = 0;
+
+                        ItemTemplate const* pProto = sObjectMgr->GetItemTemplate(itemId);
+                        if (pProto)
+                            disenchantId = pProto->DisenchantID;
+
+                        // 2. 更新成就（这里依赖 item 指针，必须在移除前调用）
+                        player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_CAST_SPELL, 13262); // Disenchant
+
+                        // 3. 移除物品（item 失效）
                         item->is_looted = true;
                         roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
                         roll->getLoot()->unlootedCount--;
-                        ItemTemplate const* pProto = sObjectMgr->GetItemTemplate(roll->itemid);
-                        player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_CAST_SPELL, 13262); // Disenchant
 
-                        ItemPosCountVec dest;
-                        InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count);
-
-                        if (msg == EQUIP_ERR_OK)
+                        // 4. 使用保存的副本进行后续操作
+                        if (pProto && disenchantId)
                         {
-                            player->AutoStoreLoot(pProto->DisenchantID, LootTemplates_Disenchant, true);
-                        }
-                        else
-                        {
-                            Loot loot;
-                            loot.FillLoot(pProto->DisenchantID, LootTemplates_Disenchant, player, true);
+                            ItemPosCountVec dest;
+                            InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemId, itemCount);
 
-                            uint32 max_slot = loot.GetMaxSlotInLootFor(player);
-                            for (uint32 i = 0; i < max_slot; i++)
+                            if (msg == EQUIP_ERR_OK)
                             {
-                                LootItem* lootItem = loot.LootItemInSlot(i, player);
-                                player->SendEquipError(msg, nullptr, nullptr, lootItem->itemid);
-                                player->SendItemRetrievalMail(lootItem->itemid, lootItem->count);
+                                player->AutoStoreLoot(disenchantId, LootTemplates_Disenchant, true);
+                            }
+                            else
+                            {
+                                Loot loot;
+                                loot.FillLoot(disenchantId, LootTemplates_Disenchant, player, true);
+
+                                uint32 max_slot = loot.GetMaxSlotInLootFor(player);
+                                for (uint32 i = 0; i < max_slot; i++)
+                                {
+                                    LootItem* lootItem = loot.LootItemInSlot(i, player);
+                                    player->SendEquipError(msg, nullptr, nullptr, lootItem->itemid);
+                                    player->SendItemRetrievalMail(lootItem->itemid, lootItem->count);
+                                }
                             }
                         }
                     }
+
                 }
             }
             else
