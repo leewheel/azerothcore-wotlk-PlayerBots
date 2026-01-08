@@ -1432,15 +1432,6 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
         return;
     }
 
-    // Cache loot pointer and validate it before each access
-    Loot* loot = roll->getLoot();
-    if (!loot)
-    {
-        RollId.erase(rollI);
-        delete roll;
-        return;
-    }
-
     //end of the roll
     if (roll->totalNeed > 0)
     {
@@ -1466,7 +1457,7 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                 SendLootRoll(ObjectGuid::Empty, itr->first, randomN, ROLL_NEED, *roll);
                 if (maxresul < randomN)
                 {
-                    maxguid = itr->first;
+                    maxguid  = itr->first;
                     maxresul = randomN;
                 }
             }
@@ -1480,38 +1471,19 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                 {
                     player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_ROLL_NEED_ON_LOOT, roll->itemid, maxresul);
 
-                    // Re-validate loot before accessing
-                    if (!roll->isValid() || !(loot = roll->getLoot()))
-                    {
-                        RollId.erase(rollI);
-                        delete roll;
-                        return;
-                    }
-
-                    LootItem* item = &(roll->itemSlot >= loot->items.size() ? loot->quest_items[roll->itemSlot - loot->items.size()] : loot->items[roll->itemSlot]);
                     ItemPosCountVec dest;
+                    LootItem* item = &(roll->itemSlot >= roll->getLoot()->items.size() ? roll->getLoot()->quest_items[roll->itemSlot - roll->getLoot()->items.size()] : roll->getLoot()->items[roll->itemSlot]);
                     InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count);
                     if (msg == EQUIP_ERR_OK)
                     {
-                        // 1. 【修复关键点】在移除物品之前，先按值拷贝所有需要的数据
-                        // 此时 item 指针依然有效
-                        AllowedLooterSet looters = item->GetAllowedLooters();
-                        int32 randomPropId = item->randomPropertyId;
-                        uint32 itemId = roll->itemid;
-
-                        // 2. 如果 UpdateLootAchievements 必须在发放前调用，且依赖 item，也放在这里
-                        player->UpdateLootAchievements(item, loot);
-
-                        // 3. 标记为已拾取并从 Loot 中移除
-                        // 这一行之后，item 指针失效，绝对不能再访问 item 的任何成员！
                         item->is_looted = true;
-                        loot->NotifyItemRemoved(roll->itemSlot);
-                        loot->unlootedCount--;
-
-                        // 4. 使用之前保存的局部变量进行发放，而不是再访问 item
-                        Item* _item = player->StoreNewItem(dest, itemId, true, randomPropId, looters);
+                        roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
+                        roll->getLoot()->unlootedCount--;
+                        AllowedLooterSet looters = item->GetAllowedLooters();
+                        Item* _item = player->StoreNewItem(dest, roll->itemid, true, item->randomPropertyId, looters);
                         if (_item)
                             sScriptMgr->OnPlayerGroupRollRewardItem(player, _item, _item->GetCount(), NEED, roll);
+                        player->UpdateLootAchievements(item, roll->getLoot());
                     }
                     else
                     {
@@ -1551,7 +1523,7 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                 SendLootRoll(ObjectGuid::Empty, itr->first, randomN, itr->second, *roll);
                 if (maxresul < randomN)
                 {
-                    maxguid = itr->first;
+                    maxguid  = itr->first;
                     maxresul = randomN;
                     rollvote = itr->second;
                 }
@@ -1566,15 +1538,7 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                 {
                     player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_ROLL_GREED_ON_LOOT, roll->itemid, maxresul);
 
-                    // Re-validate loot before accessing
-                    if (!roll->isValid() || !(loot = roll->getLoot()))
-                    {
-                        RollId.erase(rollI);
-                        delete roll;
-                        return;
-                    }
-
-                    LootItem* item = &(roll->itemSlot >= loot->items.size() ? loot->quest_items[roll->itemSlot - loot->items.size()] : loot->items[roll->itemSlot]);
+                    LootItem* item = &(roll->itemSlot >= roll->getLoot()->items.size() ? roll->getLoot()->quest_items[roll->itemSlot - roll->getLoot()->items.size()] : roll->getLoot()->items[roll->itemSlot]);
 
                     if (rollvote == GREED)
                     {
@@ -1582,23 +1546,14 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                         InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count);
                         if (msg == EQUIP_ERR_OK)
                         {
-                            // 1. 【修复关键点】先拷贝数据
-                            AllowedLooterSet looters = item->GetAllowedLooters();
-                            int32 randomPropId = item->randomPropertyId;
-                            uint32 itemId = roll->itemid;
-
-                            // 2. 更新成就（依赖 item）
-                            player->UpdateLootAchievements(item, loot);
-
-                            // 3. 移除物品（item 失效）
                             item->is_looted = true;
-                            loot->NotifyItemRemoved(roll->itemSlot);
-                            loot->unlootedCount--;
-
-                            // 4. 使用保存的数据发放
-                            Item* _item = player->StoreNewItem(dest, itemId, true, randomPropId, looters);
+                            roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
+                            roll->getLoot()->unlootedCount--;
+                            AllowedLooterSet looters = item->GetAllowedLooters();
+                            Item* _item = player->StoreNewItem(dest, roll->itemid, true, item->randomPropertyId, looters);
                             if (_item)
                                 sScriptMgr->OnPlayerGroupRollRewardItem(player, _item, _item->GetCount(), GREED, roll);
+                            player->UpdateLootAchievements(item, roll->getLoot());
                         }
                         else
                         {
@@ -1609,49 +1564,33 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
                     }
                     else if (rollvote == DISENCHANT)
                     {
-                        // 1. 【修复关键点】在移除物品之前，先拷贝数据
-                        uint32 itemId = roll->itemid;
-                        uint32 itemCount = item->count; // <--- 必须在这里保存 count
-                        uint32 disenchantId = 0;
-
-                        ItemTemplate const* pProto = sObjectMgr->GetItemTemplate(itemId);
-                        if (pProto)
-                            disenchantId = pProto->DisenchantID;
-
-                        // 2. 更新成就（这里依赖 item 指针，必须在移除前调用）
+                        item->is_looted = true;
+                        roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
+                        roll->getLoot()->unlootedCount--;
+                        ItemTemplate const* pProto = sObjectMgr->GetItemTemplate(roll->itemid);
                         player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_CAST_SPELL, 13262); // Disenchant
 
-                        // 3. 移除物品（item 失效）
-                        item->is_looted = true;
-                        loot->NotifyItemRemoved(roll->itemSlot);
-                        loot->unlootedCount--;
+                        ItemPosCountVec dest;
+                        InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count);
 
-                        // 4. 使用保存的副本进行后续操作
-                        if (pProto && disenchantId)
+                        if (msg == EQUIP_ERR_OK)
                         {
-                            ItemPosCountVec dest;
-                            InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemId, itemCount);
+                            player->AutoStoreLoot(pProto->DisenchantID, LootTemplates_Disenchant, true);
+                        }
+                        else
+                        {
+                            Loot loot;
+                            loot.FillLoot(pProto->DisenchantID, LootTemplates_Disenchant, player, true);
 
-                            if (msg == EQUIP_ERR_OK)
+                            uint32 max_slot = loot.GetMaxSlotInLootFor(player);
+                            for(uint32 i = 0; i < max_slot; i++)
                             {
-                                player->AutoStoreLoot(disenchantId, LootTemplates_Disenchant, true);
-                            }
-                            else
-                            {
-                                Loot loot;
-                                loot.FillLoot(disenchantId, LootTemplates_Disenchant, player, true);
-
-                                uint32 max_slot = loot.GetMaxSlotInLootFor(player);
-                                for (uint32 i = 0; i < max_slot; i++)
-                                {
-                                    LootItem* lootItem = loot.LootItemInSlot(i, player);
-                                    player->SendEquipError(msg, nullptr, nullptr, lootItem->itemid);
-                                    player->SendItemRetrievalMail(lootItem->itemid, lootItem->count);
-                                }
+                                LootItem* lootItem = loot.LootItemInSlot(i, player);
+                                player->SendEquipError(msg, nullptr, nullptr, lootItem->itemid);
+                                player->SendItemRetrievalMail(lootItem->itemid, lootItem->count);
                             }
                         }
                     }
-
                 }
             }
             else
@@ -1663,13 +1602,9 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
         SendLootAllPassed(*roll);
 
         // remove is_blocked so that the item is lootable by all players
-        // Re-validate loot before accessing
-        if (roll->isValid() && (loot = roll->getLoot()))
-        {
-            LootItem* item = &(roll->itemSlot >= loot->items.size() ? loot->quest_items[roll->itemSlot - loot->items.size()] : loot->items[roll->itemSlot]);
-            if (item)
-                item->is_blocked = false;
-        }
+        LootItem* item = &(roll->itemSlot >= roll->getLoot()->items.size() ? roll->getLoot()->quest_items[roll->itemSlot - roll->getLoot()->items.size()] : roll->getLoot()->items[roll->itemSlot]);
+        if (item)
+            item->is_blocked = false;
     }
 
     if (Loot* loot = roll->getLoot(); loot && loot->isLooted() && loot->sourceGameObject)
