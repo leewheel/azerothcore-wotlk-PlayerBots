@@ -4825,13 +4825,13 @@ void Player::_LoadArenaTeamInfo()
             ArenaTeam* arenaTeam = sArenaTeamMgr->GetArenaTeamById(arenaTeamId);
             if (!arenaTeam)
             {
-                LOG_ERROR("bg.arena", "Player::_LoadArenaTeamInfo: No arena team was found.");
+                LOG_INFO("bg.arena", "Player::_LoadArenaTeamInfo: No arena team was found.");
                 continue;
             }
             ArenaTeamMember const* member = arenaTeam->GetMember(GetGUID());
             if (!member)
             {
-                LOG_ERROR("bg.arena", "Player::_LoadArenaTeamInfo: No members in the arena team ({}) was found.", arenaTeamId);
+                LOG_INFO("bg.arena", "Player::_LoadArenaTeamInfo: No members in the arena team ({}) was found.", arenaTeamId);
                 continue;
             }
             uint8 slot = itr.second;
