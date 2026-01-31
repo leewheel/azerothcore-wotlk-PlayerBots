@@ -24,11 +24,15 @@
 #include "ObjectMgr.h"
 #include "World.h"
 #include <fmt/core.h>
+//by leewheel 20260131 - Add diagnostic logging support
 #include <chrono>
 #include <thread>
+//end leewheel
 
 #if AC_PLATFORM == AC_PLATFORM_WINDOWS
+//by leewheel 20260131 - Add stdin validation support
 #include <io.h>
+//end leewheel
 #endif
 
 #if AC_PLATFORM != AC_PLATFORM_WINDOWS
@@ -77,17 +81,13 @@ namespace Acore::Impl::Readline
 }
 #endif
 
+//by leewheel 20260131 - Fix: Add fflush for Windows to ensure command output is displayed immediately
 void utf8print(void* /*arg*/, std::string_view str)
-{
-#if AC_PLATFORM == AC_PLATFORM_WINDOWS
-    fmt::print(str);
-#else
 {
     fmt::print(str);
     fflush(stdout);
 }
-#endif
-}
+//end leewheel
 
 void commandFinished(void*, bool /*success*/)
 {
@@ -113,9 +113,10 @@ int kb_hit_return()
 /// %Thread start
 void CliThread()
 {
-    // Diagnostic: Log CLI thread startup
+    //by leewheel 20260131 - Diagnostic: Log CLI thread startup
     fmt::print("[CLI] CLI Thread started successfully\n");
     fflush(stdout);
+    //end leewheel
 
 #if AC_PLATFORM == AC_PLATFORM_WINDOWS
     // print this here the first time
@@ -155,7 +156,7 @@ void CliThread()
 
 #if AC_PLATFORM == AC_PLATFORM_WINDOWS
         wchar_t commandbuf[256];
-        // Diagnostic: Check if stdin is valid
+        //by leewheel 20260131 - Diagnostic: Check if stdin is valid
         if (stdin == nullptr || _isatty(_fileno(stdin)) == 0)
         {
             fmt::print("[CLI] WARNING: stdin is not a valid console input (stdin={}, isatty={})\n", 
@@ -164,6 +165,7 @@ void CliThread()
             std::this_thread::sleep_for(std::chrono::seconds(5));
             continue;
         }
+        //end leewheel
         
         if (fgetws(commandbuf, sizeof(commandbuf), stdin))
         {
@@ -199,15 +201,17 @@ void CliThread()
                 command.erase(nextLineIndex);
             }
 
-            // Diagnostic: Log command reception
+            //by leewheel 20260131 - Diagnostic: Log command reception
             fmt::print("[CLI] Command received: '{}'\n", command);
             fflush(stdout);
+            //end leewheel
             
             sWorld->QueueCliCommand(new CliCommandHolder(nullptr, command.c_str(), &utf8print, &commandFinished));
             
-            // Diagnostic: Log command queued
+            //by leewheel 20260131 - Diagnostic: Log command queued
             fmt::print("[CLI] Command queued successfully\n");
             fflush(stdout);
+            //end leewheel;
             
 #if AC_PLATFORM != AC_PLATFORM_WINDOWS
             add_history(command.c_str());
@@ -215,12 +219,16 @@ void CliThread()
         }
         else if (feof(stdin))
         {
+            //by leewheel 20260131 - Diagnostic: Log stdin EOF detection
             fmt::print("[CLI] stdin EOF detected, shutting down\n");
             fflush(stdout);
+            //end leewheel
             World::StopNow(SHUTDOWN_EXIT_CODE);
         }
     }
     
+    //by leewheel 20260131 - Diagnostic: Log CLI thread exit
     fmt::print("[CLI] CLI Thread exiting\n");
     fflush(stdout);
+    //end leewheel
 }
