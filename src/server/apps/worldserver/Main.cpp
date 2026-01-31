@@ -394,7 +394,14 @@ int main(int argc, char** argv)
     if (sConfigMgr->GetOption<bool>("Console.Enable", true))
 #endif
     {
+        LOG_INFO("server.worldserver", "Starting CLI thread...");
         cliThread.reset(new std::thread(CliThread), &ShutdownCLIThread);
+        LOG_INFO("server.worldserver", "CLI thread created successfully");
+    }
+    else
+    {
+        LOG_WARN("server.worldserver", "Console is disabled (Console.Enable={}, ServiceStatus={})", 
+                 sConfigMgr->GetOption<bool>("Console.Enable", true), m_ServiceStatus);
     }
 
     WorldUpdateLoop();

@@ -24,6 +24,12 @@
 #include "ObjectMgr.h"
 #include "World.h"
 #include <fmt/core.h>
+#include <chrono>
+#include <thread>
+
+#if AC_PLATFORM == AC_PLATFORM_WINDOWS
+#include <io.h>
+#endif
 
 #if AC_PLATFORM != AC_PLATFORM_WINDOWS
 #include "Chat.h"
@@ -107,6 +113,10 @@ int kb_hit_return()
 /// %Thread start
 void CliThread()
 {
+    // Diagnostic: Log CLI thread startup
+    fmt::print("[CLI] CLI Thread started successfully\n");
+    fflush(stdout);
+
 #if AC_PLATFORM == AC_PLATFORM_WINDOWS
     // print this here the first time
     // later it will be printed after command queue updates
@@ -145,6 +155,16 @@ void CliThread()
 
 #if AC_PLATFORM == AC_PLATFORM_WINDOWS
         wchar_t commandbuf[256];
+        // Diagnostic: Check if stdin is valid
+        if (stdin == nullptr || _isatty(_fileno(stdin)) == 0)
+        {
+            fmt::print("[CLI] WARNING: stdin is not a valid console input (stdin={}, isatty={})\n", 
+                       (void*)stdin, _isatty(_fileno(stdin)));
+            fflush(stdout);
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+            continue;
+        }
+        
         if (fgetws(commandbuf, sizeof(commandbuf), stdin))
         {
             if (!WStrToUtf8(commandbuf, wcslen(commandbuf), command))
@@ -179,15 +199,28 @@ void CliThread()
                 command.erase(nextLineIndex);
             }
 
+            // Diagnostic: Log command reception
+            fmt::print("[CLI] Command received: '{}'\n", command);
             fflush(stdout);
+            
             sWorld->QueueCliCommand(new CliCommandHolder(nullptr, command.c_str(), &utf8print, &commandFinished));
+            
+            // Diagnostic: Log command queued
+            fmt::print("[CLI] Command queued successfully\n");
+            fflush(stdout);
+            
 #if AC_PLATFORM != AC_PLATFORM_WINDOWS
             add_history(command.c_str());
 #endif
         }
         else if (feof(stdin))
         {
+            fmt::print("[CLI] stdin EOF detected, shutting down\n");
+            fflush(stdout);
             World::StopNow(SHUTDOWN_EXIT_CODE);
         }
     }
+    
+    fmt::print("[CLI] CLI Thread exiting\n");
+    fflush(stdout);
 }
