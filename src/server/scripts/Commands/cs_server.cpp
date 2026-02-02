@@ -264,13 +264,29 @@ public:
 
     static bool HandleServerInfoCommand(ChatHandler* handler)
     {
+        //by leewheel 20260201 - Debug: Print entry
+        printf("[TRACE] HandleServerInfoCommand: Entry\n");
+        fflush(stdout);
+        //end leewheel
+        
         std::string realmName = sWorld->GetRealmName();
         uint32 playerCount = sWorldSessionMgr->GetPlayerCount();
         uint32 activeSessionCount = sWorldSessionMgr->GetActiveSessionCount();
         uint32 queuedSessionCount = sWorldSessionMgr->GetQueuedSessionCount();
         uint32 connPeak = sWorldSessionMgr->GetMaxActiveSessionCount();
 
+        //by leewheel 20260201 - Debug: Print before PSendSysMessage calls
+        printf("[TRACE] HandleServerInfoCommand: About to call PSendSysMessage\n");
+        fflush(stdout);
+        //end leewheel
+
         handler->PSendSysMessage("{}", GitRevision::GetFullVersion());
+        
+        //by leewheel 20260201 - Debug: After first PSendSysMessage
+        printf("[TRACE] HandleServerInfoCommand: First PSendSysMessage completed\n");
+        fflush(stdout);
+        //end leewheel
+        
         if (!queuedSessionCount)
             handler->PSendSysMessage("Connected players: {}. Characters in world: {}.", activeSessionCount, playerCount);
         else
@@ -289,6 +305,11 @@ public:
         //! Can't use sWorld->ShutdownMsg here in case of console command
         if (sWorld->IsShuttingDown())
             handler->PSendSysMessage(LANG_SHUTDOWN_TIMELEFT, secsToTimeString(sWorld->GetShutDownTimeLeft()).append("."));
+
+        //by leewheel 20260201 - Debug: Print before return
+        printf("[TRACE] HandleServerInfoCommand: Returning true\n");
+        fflush(stdout);
+        //end leewheel
 
         return true;
     }

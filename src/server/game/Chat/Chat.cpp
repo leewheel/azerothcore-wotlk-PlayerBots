@@ -227,12 +227,34 @@ void ChatHandler::SendErrorMessage(std::string_view str, bool escapeCharacters)
 
 bool ChatHandler::_ParseCommands(std::string_view text)
 {
+    //by leewheel 20260201 - Debug: Log _ParseCommands entry
+    LOG_DEBUG("server.worldserver", "ChatHandler::_ParseCommands: Entry, text: '{}' (length: {})", text, text.length());
+    //end leewheel
+    
     if (Acore::ChatCommands::TryExecuteCommand(*this, text))
+    {
+        //by leewheel 20260201 - Debug: Command executed successfully
+        LOG_DEBUG("server.worldserver", "ChatHandler::_ParseCommands: TryExecuteCommand returned true");
+        //end leewheel
         return true;
+    }
+
+    //by leewheel 20260201 - Debug: Command not found
+    LOG_DEBUG("server.worldserver", "ChatHandler::_ParseCommands: TryExecuteCommand returned false");
+    //end leewheel
 
     // Pretend commands don't exist for regular players
     if (m_session && AccountMgr::IsPlayerAccount(m_session->GetSecurity()) && !sWorld->getBoolConfig(CONFIG_ALLOW_PLAYER_COMMANDS))
+    {
+        //by leewheel 20260201 - Debug: Player account, hiding command
+        LOG_DEBUG("server.worldserver", "ChatHandler::_ParseCommands: Player account, returning false");
+        //end leewheel
         return false;
+    }
+
+    //by leewheel 20260201 - Debug: Sending error message
+    LOG_DEBUG("server.worldserver", "ChatHandler::_ParseCommands: Sending error message for invalid command");
+    //end leewheel
 
     // Send error message for GMs
     SendErrorMessage(LANG_CMD_INVALID, text);
@@ -243,23 +265,54 @@ bool ChatHandler::ParseCommands(std::string_view text)
 {
     ASSERT(!text.empty());
 
+    //by leewheel 20260201 - Debug: Log ParseCommands entry
+    LOG_DEBUG("server.worldserver", "ChatHandler::ParseCommands: Entry, text: '{}' (length: {})", text, text.length());
+    //end leewheel
+
     // chat case (.command or !command format)
     if ((text[0] != '!') && (text[0] != '.'))
+    {
+        //by leewheel 20260201 - Debug: Not a command (no prefix)
+        LOG_DEBUG("server.worldserver", "ChatHandler::ParseCommands: Not a command (no . or ! prefix), returning false");
+        //end leewheel
         return false;
+    }
 
     // ignore single . and ! in line
     if (text.length() < 2)
+    {
+        //by leewheel 20260201 - Debug: Command too short
+        LOG_DEBUG("server.worldserver", "ChatHandler::ParseCommands: Command too short (length < 2), returning false");
+        //end leewheel
         return false;
+    }
 
     // ignore messages staring from many dots.
     if (text[1] == text[0])
+    {
+        //by leewheel 20260201 - Debug: Multiple prefix characters
+        LOG_DEBUG("server.worldserver", "ChatHandler::ParseCommands: Multiple prefix characters, returning false");
+        //end leewheel
         return false;
+    }
 
     // ignore messages with separator after .
     if (text[1] == Acore::Impl::ChatCommands::COMMAND_DELIMITER)
+    {
+        //by leewheel 20260201 - Debug: Separator after prefix
+        LOG_DEBUG("server.worldserver", "ChatHandler::ParseCommands: Separator after prefix, returning false");
+        //end leewheel
         return false;
+    }
 
-    return _ParseCommands(text.substr(1));
+    //by leewheel 20260201 - Debug: Removing command prefix
+    LOG_DEBUG("server.worldserver", "ChatHandler::ParseCommands: Removing leading indicator '{}', original: '{}'", text[0], text);
+    std::string_view commandText = text.substr(1);
+    LOG_DEBUG("server.worldserver", "ChatHandler::ParseCommands: After removing indicator: '{}'", commandText);
+    LOG_DEBUG("server.worldserver", "ChatHandler::ParseCommands: Calling _ParseCommands with: '{}'", commandText);
+    //end leewheel
+
+    return _ParseCommands(commandText);
 }
 
 std::size_t ChatHandler::BuildChatPacket(WorldPacket& data, ChatMsg chatType, Language language, ObjectGuid senderGUID, ObjectGuid receiverGUID, std::string_view message, uint8 chatTag,
@@ -961,20 +1014,76 @@ std::string CliHandler::GetAcoreString(uint32 entry) const
 
 void CliHandler::SendSysMessage(std::string_view str, bool /*escapeCharacters*/)
 {
-    m_print(m_callbackArg, str);
-    m_print(m_callbackArg, "\r\n");
+    //by leewheel 20260201 - Debug: Print SendSysMessage call (COMMENTED OUT - debugging complete)
+    //printf("[TRACE] CliHandler::SendSysMessage: Called!\n");
+    //printf("[TRACE] CliHandler::SendSysMessage: String length: %zu\n", str.length());
+    //printf("[TRACE] CliHandler::SendSysMessage: String content: '%.*s'\n", (int)std::min(str.length(), size_t(100)), str.data());
+    //printf("[TRACE] CliHandler::SendSysMessage: m_print pointer: %p\n", (void*)m_print);
+    //printf("[TRACE] CliHandler::SendSysMessage: m_callbackArg: %p\n", m_callbackArg);
+    //fflush(stdout);
+    //end leewheel
+    
+    if (m_print)
+    {
+        //printf("[TRACE] CliHandler::SendSysMessage: Calling m_print with string\n");
+        //fflush(stdout);
+        m_print(m_callbackArg, str);
+        //printf("[TRACE] CliHandler::SendSysMessage: Calling m_print with newline\n");
+        //fflush(stdout);
+        m_print(m_callbackArg, "\r\n");
+        //printf("[TRACE] CliHandler::SendSysMessage: m_print calls completed\n");
+        //fflush(stdout);
+    }
+    //by leewheel 20260201 - Debug: m_print is NULL (COMMENTED OUT - debugging complete)
+    //else
+    //{
+    //    printf("[TRACE] CliHandler::SendSysMessage: ERROR - m_print is NULL!\n");
+    //    fflush(stdout);
+    //}
+    //end leewheel
 }
 
 bool CliHandler::ParseCommands(std::string_view str)
 {
+    //by leewheel 20260201 - Debug: Print entry (COMMENTED OUT - debugging complete)
+    //printf("[TRACE] CliHandler::ParseCommands: Entry, str: '%.*s' (length: %zu)\n", (int)str.length(), str.data(), str.length());
+    //fflush(stdout);
+    //end leewheel
+    
     if (str.empty())
+    {
+        //by leewheel 20260201 - Debug: Empty string (COMMENTED OUT - debugging complete)
+        //printf("[TRACE] CliHandler::ParseCommands: String is empty, returning false\n");
+        //fflush(stdout);
+        //end leewheel
         return false;
+    }
 
     // Console allows using commands both with and without leading indicator
     if (str[0] == '.' || str[0] == '!')
+    {
+        //by leewheel 20260201 - Debug: Removing leading indicator (COMMENTED OUT - debugging complete)
+        //printf("[TRACE] CliHandler::ParseCommands: Removing leading indicator '%c', original: '%.*s'\n", str[0], (int)str.length(), str.data());
+        //fflush(stdout);
+        //end leewheel
+        
         str = str.substr(1);
+        
+        //by leewheel 20260201 - Debug: After removing indicator (COMMENTED OUT - debugging complete)
+        //printf("[TRACE] CliHandler::ParseCommands: After removing indicator: '%.*s'\n", (int)str.length(), str.data());
+        //fflush(stdout);
+        //end leewheel
+    }
 
-    return _ParseCommands(str);
+    //by leewheel 20260201 - Debug: Calling _ParseCommands (COMMENTED OUT - debugging complete)
+    //printf("[TRACE] CliHandler::ParseCommands: Calling _ParseCommands with: '%.*s'\n", (int)str.length(), str.data());
+    //fflush(stdout);
+    bool result = _ParseCommands(str);
+    //printf("[TRACE] CliHandler::ParseCommands: _ParseCommands returned: %d\n", result ? 1 : 0);
+    //fflush(stdout);
+    //end leewheel
+
+    return result;
 }
 
 std::string CliHandler::GetNameLink() const

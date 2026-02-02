@@ -1555,17 +1555,64 @@ void World::ProcessCliCommands()
     CliCommandHolder::Print zprint = nullptr;
     void* callbackArg = nullptr;
     CliCommandHolder* command = nullptr;
+    
+    //by leewheel 20260202 - Debug: Check if queue has commands (COMMENTED OUT - too noisy)
+    //printf("[TRACE] ProcessCliCommands: Checking command queue...\n");
+    //fflush(stdout);
+    //end leewheel
+    
     while (_cliCmdQueue.next(command))
     {
+        //by leewheel 20260201 - Debug: Print command processing start (COMMENTED OUT - debugging complete)
+        //printf("[TRACE] ProcessCliCommands: Got command from queue: '%s'\n", command->m_command);
+        //fflush(stdout);
+        //end leewheel
+        
         LOG_DEBUG("server.worldserver", "CLI command under processing...");
         zprint = command->m_print;
         callbackArg = command->m_callbackArg;
+        
+        //by leewheel 20260201 - Debug: Print before creating CliHandler (COMMENTED OUT - debugging complete)
+        //printf("[TRACE] ProcessCliCommands: Creating CliHandler, zprint=%p, callbackArg=%p\n", (void*)zprint, callbackArg);
+        //fflush(stdout);
+        //end leewheel
+        
         CliHandler handler(callbackArg, zprint);
+        
+        //by leewheel 20260201 - Debug: Print before ParseCommands (COMMENTED OUT - debugging complete)
+        //printf("[TRACE] ProcessCliCommands: Calling ParseCommands with: '%s'\n", command->m_command);
+        //fflush(stdout);
+        //end leewheel
+        
         handler.ParseCommands(command->m_command);
+        
+        //by leewheel 20260201 - Debug: Print after ParseCommands (COMMENTED OUT - debugging complete)
+        //printf("[TRACE] ProcessCliCommands: ParseCommands completed, HasSentErrorMessage: %d\n", handler.HasSentErrorMessage() ? 1 : 0);
+        //fflush(stdout);
+        //end leewheel
+        
         if (command->m_commandFinished)
+        {
+            //by leewheel 20260201 - Debug: Print callback execution (COMMENTED OUT - debugging complete)
+            //printf("[TRACE] ProcessCliCommands: Calling commandFinished callback\n");
+            //fflush(stdout);
+            //end leewheel
+            
             command->m_commandFinished(callbackArg, !handler.HasSentErrorMessage());
+        }
+        
+        //by leewheel 20260201 - Debug: Print before deleting command (COMMENTED OUT - debugging complete)
+        //printf("[TRACE] ProcessCliCommands: Deleting command holder\n");
+        //fflush(stdout);
+        //end leewheel
+        
         delete command;
     }
+    
+    //by leewheel 20260202 - Debug: Print when no more commands (COMMENTED OUT - too noisy)
+    //printf("[TRACE] ProcessCliCommands: No more commands in queue\n");
+    //fflush(stdout);
+    //end leewheel
 }
 
 void World::UpdateRealmCharCount(uint32 accountId)
@@ -1840,9 +1887,18 @@ uint32 World::GetNextWhoListUpdateDelaySecs()
 CliCommandHolder::CliCommandHolder(void* callbackArg, char const* command, Print zprint, CommandFinished commandFinished)
     : m_callbackArg(callbackArg), m_command(strdup(command)), m_print(zprint), m_commandFinished(commandFinished)
 {
+    //by leewheel 20260201 - Debug: Log construction
+    LOG_DEBUG("server.worldserver", "CliCommandHolder: Constructor called, command: '{}', m_command: '{}'", 
+              command ? command : "(null)", m_command ? m_command : "(null)");
+    //end leewheel
 }
 
 CliCommandHolder::~CliCommandHolder()
 {
+    //by leewheel 20260201 - Debug: Log destruction
+    LOG_DEBUG("server.worldserver", "CliCommandHolder: Destructor called, m_command: '{}'", 
+              m_command ? m_command : "(null)");
+    //end leewheel
+    
     free(m_command);
 }
