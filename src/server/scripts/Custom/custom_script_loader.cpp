@@ -18,10 +18,17 @@
 // This is where scripts' loading functions should be declared:
 // void MyExampleScript()
 void AddSC_quest_choes_of_Tortured_Souls();
+//By Leewheel 20260203 - PVP装备自动装备系统
+void AddSC_pvp_gear_auto_equip();
+//End By Leewheel
+
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
 void AddCustomScripts()
 {
     // MyExampleScript()
     AddSC_quest_choes_of_Tortured_Souls();
+    //By Leewheel 20260203
+    AddSC_pvp_gear_auto_equip();
+    //End By Leewheel
 }
