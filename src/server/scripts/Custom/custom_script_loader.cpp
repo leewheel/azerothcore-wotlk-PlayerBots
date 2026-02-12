@@ -21,8 +21,8 @@ void AddSC_quest_choes_of_Tortured_Souls();
 //By Leewheel 20260203 - PVP装备自动装备系统
 void AddSC_pvp_gear_auto_equip();
 //End By Leewheel
-//By Leewheel 20260204 - PVP法术施放系统
-void AddSC_pvp_spell_cast();
+//By Leewheel 20260204 - PVP法术施放系统 (已禁用 2026-02-12)
+// void AddSC_pvp_spell_cast();
 //End By Leewheel
 
 // The name of this function should match:
@@ -34,7 +34,7 @@ void AddCustomScripts()
     //By Leewheel 20260203
     AddSC_pvp_gear_auto_equip();
     //End By Leewheel
-    //By Leewheel 20260204
-    AddSC_pvp_spell_cast();
+    //By Leewheel 20260204 - PVP法术施放系统 (已禁用 2026-02-12)
+    // AddSC_pvp_spell_cast();
     //End By Leewheel
 }

@@ -430,17 +430,16 @@ enum DyingKodo
 
 struct npc_aged_dying_ancient_kodo : public ScriptedAI
 {
-public:
-    npc_aged_dying_ancient_kodo() : CreatureScript("npc_aged_dying_ancient_kodo") {}
+    npc_aged_dying_ancient_kodo(Creature* creature) : ScriptedAI(creature) {}
 
     void JustRespawned() override
     {
         me->UpdateEntry(RAND(NPC_AGED_KODO, NPC_DYING_KODO, NPC_ANCIENT_KODO));
     }
 
-        Player* _tamerPlayer = nullptr;
-
-        void JustRespawned() override
+    void MoveInLineOfSight(Unit* who) override
+    {
+        if (who->GetEntry() == NPC_SMEED && me->IsWithinDistInMap(who, 10.0f) && !me->HasAura(SPELL_KODO_KOMBO_GOSSIP))
         {
             me->SetHomePosition(me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), me->GetOrientation());
             me->GetMotionMaster()->Clear();
@@ -460,13 +459,8 @@ public:
             EnterEvadeMode();
             me->GetMotionMaster()->MoveFollow(caster, PET_FOLLOW_DIST, me->GetFollowAngle());
 
-                DoCast(me, SPELL_KODO_KOMBO_GOSSIP, true);
-                if (Creature* smeed = who->ToCreature())
-                    smeed->AI()->Talk(SAY_SMEED_HOME);
-                //交上科多兽时移除Debuff
-                if (_tamerPlayer && _tamerPlayer->HasAura(SPELL_KODO_KOMBO_PLAYER_BUFF))
-                    _tamerPlayer->RemoveAurasDueToSpell(SPELL_KODO_KOMBO_PLAYER_BUFF);
-            }
+            caster->CastSpell(caster, SPELL_KODO_KOMBO_PLAYER_BUFF);
+            DoCastSelf(SPELL_KODO_KOMBO_DESPAWN_BUFF, true);
         }
         else if (spell->Id == SPELL_KODO_KOMBO_GOSSIP)
         {
@@ -481,27 +475,11 @@ public:
         {
             if (Group* group = player->GetGroup())
             {
-                if (!caster->HasAura(SPELL_KODO_KOMBO_PLAYER_BUFF) && !caster->HasAura(SPELL_KODO_KOMBO_DESPAWN_BUFF)
-                    && (me->GetEntry() == NPC_AGED_KODO || me->GetEntry() == NPC_DYING_KODO || me->GetEntry() == NPC_ANCIENT_KODO))
+                for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
                 {
-                    Position const& pos = me->GetPosition(); // ✅ 正确写法
-
-                    // 移除当前科多
-                    me->DespawnOrUnsummon();
-
-                    // 召唤新的 Tamed Kodo
-                    if (Creature* tamed = caster->SummonCreature(NPC_TAMED_KODO, pos, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 60000))
-                    {
-                        tamed->GetMotionMaster()->MoveFollow(caster, PET_FOLLOW_DIST, tamed->GetFollowAngle());
-                        tamed->SetFaction(me->GetFaction());
-                        tamed->CastSpell(tamed, SPELL_KODO_KOMBO_DESPAWN_BUFF, true);
-                        if (npc_aged_dying_ancient_kodo::npc_aged_dying_ancient_kodoAI* ai = CAST_AI(npc_aged_dying_ancient_kodo::npc_aged_dying_ancient_kodoAI, tamed->AI()))
-                            ai->_tamerPlayer = caster->ToPlayer();
-                    }
-
-                    caster->CastSpell(caster, SPELL_KODO_KOMBO_PLAYER_BUFF, true);
-                    if (Player* player = caster->ToPlayer())
-                        player->KilledMonsterCredit(NPC_TAMED_KODO);
+                    Player* grpPlayer = itr->GetSource();
+                    if (grpPlayer->HasAura(SPELL_KODO_KOMBO_PLAYER_BUFF))
+                        grpPlayer->TalkedToCreature(creature->GetEntry(), ObjectGuid::Empty);
                 }
             }
             else
