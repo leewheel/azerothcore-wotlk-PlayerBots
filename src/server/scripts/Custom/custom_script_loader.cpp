@@ -25,7 +25,7 @@ void AddSC_pvp_gear_auto_equip();
 void AddSC_pvp_spell_cast();
 //End By Leewheel
 //By Leewheel 20260213 - 玩家机器人中文命令系统
-void AddPlayerBotsChsCommandsScripts();
+//void AddPlayerBotsChsCommandsScripts();
 //End By Leewheel
 
 // The name of this function should match:
@@ -41,6 +41,6 @@ void AddCustomScripts()
     AddSC_pvp_spell_cast();
     //End By Leewheel
     //By Leewheel 20260213 - 玩家机器人中文命令系统
-    AddPlayerBotsChsCommandsScripts();
+   /* AddPlayerBotsChsCommandsScripts();*/
     //End By Leewheel
 }
