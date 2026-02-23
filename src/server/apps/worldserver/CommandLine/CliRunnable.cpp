@@ -25,7 +25,9 @@
 #include "World.h"
 #include <fmt/core.h>
 
-#if AC_PLATFORM != AC_PLATFORM_WINDOWS
+#if AC_PLATFORM == AC_PLATFORM_WINDOWS
+#include <windows.h>
+#else
 #include "Chat.h"
 #include "ChatCommand.h"
 #include <cstring>
@@ -124,6 +126,10 @@ int kb_hit_return()
 void CliThread()
 {
 #if AC_PLATFORM == AC_PLATFORM_WINDOWS
+    // Set console code pages to UTF-8
+    SetConsoleCP(CP_UTF8);
+    SetConsoleOutputCP(CP_UTF8);
+
     // print this here the first time
     // later it will be printed after command queue updates
     PrintCliPrefix();
@@ -149,6 +155,14 @@ void CliThread()
         fInfo.uCount = 0;
         fInfo.dwTimeout = 0;
         FlashWindowEx(&fInfo);
+    }
+
+    // Get console input handle once for reading commands
+    HANDLE hStdIn = GetStdHandle(STD_INPUT_HANDLE);
+    if (hStdIn == INVALID_HANDLE_VALUE)
+    {
+        LOG_ERROR("server.worldserver", "Failed to get console input handle");
+        return;
     }
 #endif
 
