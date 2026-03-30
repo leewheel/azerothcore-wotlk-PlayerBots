@@ -119,6 +119,7 @@ variables_map GetConsoleArguments(int argc, char** argv, fs::path& configFile, [
 /// Launch the Azeroth server
 int main(int argc, char** argv)
 {
+    uint32 ThisWorldVersion = 20260213;
     Acore::Impl::CurrentServerProcessHolder::_type = SERVER_PROCESS_WORLDSERVER;
     signal(SIGABRT, &Acore::AbortHandler);
 
@@ -394,7 +395,18 @@ int main(int argc, char** argv)
     if (sConfigMgr->GetOption<bool>("Console.Enable", true))
 #endif
     {
+        //by leewheel 20260131 - Diagnostic: Log CLI thread creation
+        LOG_INFO("server.worldserver", "Starting CLI thread...");
         cliThread.reset(new std::thread(CliThread), &ShutdownCLIThread);
+        LOG_INFO("server.worldserver", "CLI thread created successfully");
+        //end leewheel
+    }
+    else
+    {
+        //by leewheel 20260131 - Diagnostic: Log when console is disabled
+        LOG_WARN("server.worldserver", "Console is disabled (Console.Enable={}, ServiceStatus={})", 
+                 sConfigMgr->GetOption<bool>("Console.Enable", true), m_ServiceStatus);
+        //end leewheel
     }
 
     WorldUpdateLoop();

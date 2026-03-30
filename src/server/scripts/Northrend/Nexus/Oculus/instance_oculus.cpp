@@ -15,6 +15,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Config.h"
 #include "Group.h"
 #include "InstanceMapScript.h"
 #include "LFGMgr.h"
@@ -168,7 +169,14 @@ public:
                     m_auiEncounter[DATA_EREGOS] = data;
                     if (data == DONE)
                     {
-                        DoRespawnGameObject(EregosCacheGUID, 7 * DAY);
+                        if (sConfigMgr->GetOption<bool>("CacheOfEregos.RespawnTime", true))
+                        {
+                            DoRespawnGameObject(EregosCacheGUID, 0);
+                        }
+                        else
+                        {
+                            DoRespawnGameObject(EregosCacheGUID, 7 * DAY);
+                        }
 
                         if (GameObject* cache = instance->GetGameObject(EregosCacheGUID))
                         {

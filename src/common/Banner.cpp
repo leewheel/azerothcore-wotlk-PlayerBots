@@ -19,23 +19,58 @@
 #include "GitRevision.h"
 #include "StringFormat.h"
 
+std::string FormatBuildDateTimeBaner(const char* dateStr, const char* timeStr)
+{
+    std::unordered_map<std::string, std::string> monthMap = {
+        {"Jan", "1"}, {"Feb", "2"}, {"Mar", "3"}, {"Apr", "4"},
+        {"May", "5"}, {"Jun", "6"}, {"Jul", "7"}, {"Aug", "8"},
+        {"Sep", "9"}, {"Oct", "10"}, {"Nov", "11"}, {"Dec", "12"}
+    };
+
+    // 解析日期
+    std::istringstream dateStream(dateStr);
+    std::string mon, day, year;
+    dateStream >> mon >> day >> year;
+
+    // 去除前导0
+    if (day[0] == '0')
+        day = day.substr(1);
+
+    // 解析时间
+    std::istringstream timeStream(timeStr);
+    std::string hour, minute, second;
+    std::getline(timeStream, hour, ':');
+    std::getline(timeStream, minute, ':');
+    std::getline(timeStream, second, ':');
+
+    return year + "年" + monthMap[mon] + "月" + day + "日 " +
+        hour + "时" + minute + "分" + second + "秒";
+}
+
+
 void Acore::Banner::Show(std::string_view applicationName, void(*log)(std::string_view text), void(*logExtraInfo)())
 {
     log(Acore::StringFormat("{} ({})", GitRevision::GetFullVersion(), applicationName));
     log("<Ctrl-C> to stop.\n");
-    log("   █████╗ ███████╗███████╗██████╗  ██████╗ ████████╗██╗  ██╗");
-    log("  ██╔══██╗╚══███╔╝██╔════╝██╔══██╗██╔═══██╗╚══██╔══╝██║  ██║");
-    log("  ███████║  ███╔╝ █████╗  ██████╔╝██║   ██║   ██║   ███████║");
-    log("  ██╔══██║ ███╔╝  ██╔══╝  ██╔══██╗██║   ██║   ██║   ██╔══██║");
-    log("  ██║  ██║███████╗███████╗██║  ██║╚██████╔╝   ██║   ██║  ██║");
-    log("  ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝");
-    log("                                 ██████╗ ██████╗ ██████╗ ███████╗");
-    log("                                ██╔════╝██╔═══██╗██╔══██╗██╔════╝");
-    log("                                ██║     ██║   ██║██████╔╝█████╗");
-    log("                                ██║     ██║   ██║██╔══██╗██╔══╝");
-    log("                                ╚██████╗╚██████╔╝██║  ██║███████╗");
-    log("                                 ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝\n");
-    log("     AzerothCore 3.3.5a  -  www.azerothcore.org\n");
+    log("██╗     ██╗    ██╗ ██████╗ ██████╗ ██████╗ ███████╗ ");
+    log("██║     ██║    ██║██╔════╝██╔═══██╗██╔══██╗██╔════╝ ");
+    log("██║     ██║ █╗ ██║██║     ██║   ██║██████╔╝█████╗   ");
+    log("██║     ██║███╗██║██║     ██║   ██║██╔══██╗██╔══╝   ");
+    log("███████╗╚███╔███╔╝╚██████╗╚██████╔╝██║  ██║███████╗ ");
+    log("╚══════╝ ╚══╝╚══╝  ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝ \n");
+    log("Based on AzerothCore 3.3.5a  -  www.azerothcore.org\n");
+
+    log("'########::'##::::::::::'###::::'##:::'##:'########:'########::'########:::'#######::'########::'######::");
+    log(" ##.... ##: ##:::::::::'## ##:::. ##:'##:: ##.....:: ##.... ##: ##.... ##:'##.... ##:... ##..::'##... ##:");
+    log(" ##:::: ##: ##::::::::'##:. ##:::. ####::: ##::::::: ##:::: ##: ##:::: ##: ##:::: ##:::: ##:::: ##:::..::");
+    log(" ########:: ##:::::::'##:::. ##:::. ##:::: ######::: ########:: ########:: ##:::: ##:::: ##::::. ######::");
+    log(" ##.....::: ##::::::: #########:::: ##:::: ##...:::: ##.. ##::: ##.... ##: ##:::: ##:::: ##:::::..... ##:");
+    log(" ##:::::::: ##::::::: ##.... ##:::: ##:::: ##::::::: ##::. ##:: ##:::: ##: ##:::: ##:::: ##::::'##::: ##:");
+    log(" ##:::::::: ########: ##:::: ##:::: ##:::: ########: ##:::. ##: ########::. #######::::: ##::::. ######::");
+    log("..:::::::::........::..:::::..:::::..:::::........::..:::::..::........::::.......::::::..::::::......:::\n");
+    log("Based on https://github.com/mod-playerbots/mod-playerbots\n");
+    log("巫妖王之怒PLAYERBOTS(基于liyunfan PB) 仿官版本. 编译时间: " + FormatBuildDateTimeBaner(__DATE__, __TIME__) + "\n");
+    log("这是一个免费版本，如果你付费取得，那就是上当了！This is a Free Repack, If you pay for it, you are a idiot!");
 
     if (logExtraInfo)
     {

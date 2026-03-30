@@ -27,9 +27,35 @@
 #include "Platform/Define.h"
 #include "Utilities/TypeList.h"
 #include <map>
+#include <memory>
+
+// Forward declarations for ContainerMapList from TypeContainer.h
+template<class OBJECT> struct ContainerMapList;
+struct TypeNull;
+template<class H, class T> struct TypeList;
 
 namespace Acore
 {
+    // Temporary fix for obsolete OBJECT_HANDLE type definition issue
+    // This file is obsolete and should not be used in modern AzerothCore
+    template<typename T>
+    class OBJECT_HANDLE_TYPE
+    {
+        uint64_t _value;
+    public:
+        OBJECT_HANDLE_TYPE() : _value(0) {}
+        explicit OBJECT_HANDLE_TYPE(uint64_t v) : _value(v) {}
+    };
+
+    typedef OBJECT_HANDLE_TYPE<void> OBJECT_HANDLE;
+
+    // Temporary dummy CountedPtr definition
+    template<typename T>
+    using CountedPtr = std::shared_ptr<T>;
+
+    // Temporary dummy NullPtr function
+    template<typename T>
+    CountedPtr<T> NullPtr(T* ptr) { return CountedPtr<T>(ptr); }
     /* ContainerMapList Helpers */
     // count functions
     //    template<class SPECIFIC_TYPE> std::size_t Count(const ContainerMapList<SPECIFIC_TYPE> &elements, CountedPtr<SPECIFIC_TYPE>* /*fake*/)

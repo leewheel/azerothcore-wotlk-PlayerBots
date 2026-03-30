@@ -18,6 +18,7 @@
 #include "UnitScript.h"
 #include "ScriptMgr.h"
 #include "ScriptMgrMacros.h"
+#include <windows.h> // 用于 GetExceptionCode() / SEH
 
 void ScriptMgr::OnHeal(Unit* healer, Unit* reciever, uint32& gain)
 {
@@ -26,6 +27,26 @@ void ScriptMgr::OnHeal(Unit* healer, Unit* reciever, uint32& gain)
 
 void ScriptMgr::OnDamage(Unit* attacker, Unit* victim, uint32& damage)
 {
+    if (attacker == nullptr)
+    {
+        return;
+    }
+
+    if (!attacker)
+    {
+        LOG_ERROR("scripts", "调用OnDamage函数没有攻击者, 目标={}",
+            victim ? victim->GetGUID().ToString() : "nullptr");
+        return;
+    }
+
+    if (!attacker->IsInWorld())
+    {
+        LOG_ERROR("scripts", "OnDamage attacker {} not in world (mapId={}, victim={})",
+            attacker->GetGUID().ToString(),
+            attacker->GetMapId(),
+            victim ? victim->GetGUID().ToString() : "nullptr");
+        return;
+    }
     CALL_ENABLED_HOOKS(UnitScript, UNITHOOK_ON_DAMAGE, script->OnDamage(attacker, victim, damage));
 }
 

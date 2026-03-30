@@ -522,8 +522,25 @@ void vutf8printf(FILE* out, const char* str, va_list* ap)
     std::size_t wtemp_len = 32 * 1024 - 1;
     Utf8toWStr(temp_buf, temp_len, wtemp_buf, wtemp_len);
 
-    CharToOemBuffW(&wtemp_buf[0], &temp_buf[0], uint32(wtemp_len + 1));
-    fprintf(out, "%s", temp_buf);
+    HANDLE consoleHandle = INVALID_HANDLE_VALUE;
+    if (out == stdout)
+    {
+        consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    }
+    else if (out == stderr)
+    {
+        consoleHandle = GetStdHandle(STD_ERROR_HANDLE);
+    }
+
+    DWORD consoleMode = 0;
+    if (consoleHandle != INVALID_HANDLE_VALUE && GetConsoleMode(consoleHandle, &consoleMode))
+    {
+        DWORD written = 0;
+        WriteConsoleW(consoleHandle, wtemp_buf, uint32(wtemp_len), &written, nullptr);
+        return;
+    }
+
+    fwrite(temp_buf, sizeof(char), temp_len, out);
 #else
     vfprintf(out, str, *ap);
 #endif

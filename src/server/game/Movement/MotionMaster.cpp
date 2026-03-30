@@ -40,15 +40,15 @@ inline MovementGenerator* GetIdleMovementGenerator()
     return sMovementGeneratorRegistry->GetRegistryItem(IDLE_MOTION_TYPE)->Create();
 }
 
- // ---- ChaseRange ---- //
+// ---- ChaseRange ---- //
 
-ChaseRange::ChaseRange(float range) : MinRange(range > CONTACT_DISTANCE ? 0 : range - CONTACT_DISTANCE), MinTolerance(range), MaxRange(range + CONTACT_DISTANCE), MaxTolerance(range) { }
-ChaseRange::ChaseRange(float _minRange, float _maxRange) : MinRange(_minRange), MinTolerance(std::min(_minRange + CONTACT_DISTANCE, (_minRange + _maxRange) / 2)), MaxRange(_maxRange), MaxTolerance(std::max(_maxRange - CONTACT_DISTANCE, MinTolerance)) { }
-ChaseRange::ChaseRange(float _minRange, float _minTolerance, float _maxTolerance, float _maxRange) : MinRange(_minRange), MinTolerance(_minTolerance), MaxRange(_maxRange), MaxTolerance(_maxTolerance) { }
+ChaseRange::ChaseRange(float range) : MinRange(range > CONTACT_DISTANCE ? 0 : range - CONTACT_DISTANCE), MinTolerance(range), MaxRange(range + CONTACT_DISTANCE), MaxTolerance(range) {}
+ChaseRange::ChaseRange(float _minRange, float _maxRange) : MinRange(_minRange), MinTolerance(std::min(_minRange + CONTACT_DISTANCE, (_minRange + _maxRange) / 2)), MaxRange(_maxRange), MaxTolerance(std::max(_maxRange - CONTACT_DISTANCE, MinTolerance)) {}
+ChaseRange::ChaseRange(float _minRange, float _minTolerance, float _maxTolerance, float _maxRange) : MinRange(_minRange), MinTolerance(_minTolerance), MaxRange(_maxRange), MaxTolerance(_maxTolerance) {}
 
 // ---- ChaseAngle ---- //
 
-ChaseAngle::ChaseAngle(float angle, float _tolerance/* = M_PI_4*/) : RelativeAngle(Position::NormalizeOrientation(angle)), Tolerance(_tolerance) { }
+ChaseAngle::ChaseAngle(float angle, float _tolerance/* = M_PI_4*/) : RelativeAngle(Position::NormalizeOrientation(angle)), Tolerance(_tolerance) {}
 
 float ChaseAngle::UpperBound() const
 {
@@ -521,13 +521,13 @@ void MotionMaster::MovePath(uint32 path_id, ForcedMovement forcedMovement, PathS
     WaypointPath const* path;
     switch (pathSource)
     {
-        default:
-        case PathSource::WAYPOINT_MGR:
-            path = sWaypointMgr->GetPath(path_id);
-            break;
-        case PathSource::SMART_WAYPOINT_MGR:
-            path = sSmartWaypointMgr->GetPath(path_id);
-            break;
+    default:
+    case PathSource::WAYPOINT_MGR:
+        path = sWaypointMgr->GetPath(path_id);
+        break;
+    case PathSource::SMART_WAYPOINT_MGR:
+        path = sSmartWaypointMgr->GetPath(path_id);
+        break;
     }
 
     if (path == nullptr)
@@ -578,7 +578,7 @@ void MotionMaster::MoveLand(uint32 id, Position const& pos, float speed /* = 0.0
  */
 void MotionMaster::MoveLand(uint32 id, float x, float y, float z, float speed /* = 0.0f*/)
 {
-    Position pos = {x, y, z, 0.0f};
+    Position pos = { x, y, z, 0.0f };
     MoveLand(id, pos, speed);
 }
 
@@ -612,7 +612,7 @@ void MotionMaster::MoveTakeoff(uint32 id, Position const& pos, float speed /* = 
  */
 void MotionMaster::MoveTakeoff(uint32 id, float x, float y, float z, float speed /* = 0.0f*/, bool skipAnimation)
 {
-    Position pos = {x, y, z, 0.0f};
+    Position pos = { x, y, z, 0.0f };
     MoveTakeoff(id, pos, speed, skipAnimation);
 }
 
@@ -625,7 +625,7 @@ void MotionMaster::MoveKnockbackFrom(float srcX, float srcY, float speedXY, floa
     if (speedXY <= 0.1f)
         return;
 
-     Position dest = _owner->GetPosition();
+    Position dest = _owner->GetPosition();
     float moveTimeHalf = speedZ / Movement::gravity;
     float dist = 2 * moveTimeHalf * speedXY;
     float max_height = -Movement::computeFallElevation(moveTimeHalf, false, -speedZ);
@@ -695,7 +695,7 @@ void MotionMaster::MoveFall(uint32 id /*=0*/, bool addFlagForNPC)
     if (tz <= INVALID_HEIGHT)
     {
         LOG_DEBUG("movement.motionmaster", "MotionMaster::MoveFall: unable retrive a proper height at map {} (x: {}, y: {}, z: {}).",
-                             _owner->GetMap()->GetId(), _owner->GetPositionX(), _owner->GetPositionX(), _owner->GetPositionZ() + _owner->GetPositionZ());
+            _owner->GetMap()->GetId(), _owner->GetPositionX(), _owner->GetPositionX(), _owner->GetPositionZ() + _owner->GetPositionZ());
         return;
     }
 
@@ -843,7 +843,7 @@ void MotionMaster::MoveTaxiFlight(uint32 path, uint32 pathnode)
         else
         {
             LOG_ERROR("movement.motionmaster", "{} attempt taxi to (not existed Path {} node {})",
-                           _owner->GetName(), path, pathnode);
+                _owner->GetName(), path, pathnode);
         }
     }
     else
@@ -974,6 +974,7 @@ void MotionMaster::MovePointBackwards(uint32 id, float x, float y, float z, bool
         Mutate(new PointMovementGenerator<Creature>(id, x, y, z, FORCED_MOVEMENT_NONE, 0.0f, orientation, nullptr, generatePath, forceDestination, std::nullopt, ObjectGuid::Empty, true), slot);
     }
 }
+
 
 #endif
 

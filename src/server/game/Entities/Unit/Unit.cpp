@@ -13064,7 +13064,7 @@ void Unit::SendMovementFlagUpdate(bool self /* = false */)
     if (IsRooted())
     {
         // each case where this occurs has to be examined and reported and dealt with.
-        LOG_ERROR("Unit", "Attempted sending heartbeat with root flag for guid {}", GetGUID().ToString());
+        LOG_INFO("Unit", "尝试为全局唯一标识符（{}）发送带有根标志的心跳信号 ", GetGUID().ToString());
         return;
     }
 

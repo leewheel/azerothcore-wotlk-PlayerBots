@@ -77,7 +77,7 @@ BEGIN
             VALUE "InternalName",       "worldserver"
             VALUE "LegalCopyright",     AC_LEGALCOPYRIGHT_STR
             VALUE "OriginalFilename",   "worldserver.exe"
-            VALUE "ProductName",        "World Server"
+            VALUE "ProductName",        "Blizzard Like World Server"
             VALUE "ProductVersion",     AC_PRODUCTVERSION_STR
         END
     END

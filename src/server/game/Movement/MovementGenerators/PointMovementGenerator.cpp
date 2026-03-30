@@ -24,7 +24,7 @@
 #include "Player.h"
 #include "World.h"
 
-//----- Point Movement Generator
+ //----- Point Movement Generator
 template<class T>
 void PointMovementGenerator<T>::DoInitialize(T* unit)
 {

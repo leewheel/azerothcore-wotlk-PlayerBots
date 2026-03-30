@@ -74,22 +74,38 @@ namespace Acore::Impl::Readline
 }
 #endif
 
+//by leewheel 20260131 - Fix: Add fflush for Windows to ensure command output is displayed immediately
 void utf8print(void* /*arg*/, std::string_view str)
 {
-#if AC_PLATFORM == AC_PLATFORM_WINDOWS
-    fmt::print(str);
-#else
-{
+    //by leewheel 20260201 - Debug: Print output (COMMENTED OUT - debugging complete)
+    //printf("[TRACE] utf8print: Called with string length: %zu\n", str.length());
+    //fflush(stdout);
+    //end leewheel
+    
     fmt::print(str);
     fflush(stdout);
+    
+    //by leewheel 20260201 - Debug: After flush (COMMENTED OUT - debugging complete)
+    //printf("[TRACE] utf8print: Output flushed\n");
+    //fflush(stdout);
+    //end leewheel
 }
-#endif
-}
+//end leewheel
 
-void commandFinished(void*, bool /*success*/)
+void commandFinished(void*, bool success)
 {
+    //by leewheel 20260201 - Debug: Print callback (COMMENTED OUT - debugging complete)
+    //printf("[TRACE] commandFinished: Called with success: %d\n", success ? 1 : 0);
+    //fflush(stdout);
+    //end leewheel
+    
     PrintCliPrefix();
     fflush(stdout);
+    
+    //by leewheel 20260201 - Debug: After printing prefix (COMMENTED OUT - debugging complete)
+    //printf("[TRACE] commandFinished: Prefix printed and flushed\n");
+    //fflush(stdout);
+    //end leewheel
 }
 
 #ifdef linux
@@ -159,48 +175,67 @@ void CliThread()
         std::string command;
 
 #if AC_PLATFORM == AC_PLATFORM_WINDOWS
-
-        static bool checkedConsole = false;
-        static bool isRealConsole = false;
-
-        if (!checkedConsole)
+        wchar_t commandbuf[256];
+        
+        //by leewheel 20260201 - Fix: Use correct buffer size (number of wchar_t, not bytes)
+        // fgetws expects the number of wide characters as 2nd parameter, not sizeof in bytes
+        // sizeof(commandbuf) = 512 bytes (256 * 2), but we need 256 (the array element count)
+        // This bug caused complete commands like ".help" to fail while single chars like "d" worked
+        //by leewheel 20260201 - Debug: Waiting for input (COMMENTED OUT - debugging complete)
+        //printf("[TRACE] CLI: Waiting for input...\n");
+        //fflush(stdout);
+        //end leewheel
+        
+        if (fgetws(commandbuf, 256, stdin))
         {
-            DWORD mode = 0;
-            isRealConsole = GetConsoleMode(hStdIn, &mode);
-            checkedConsole = true;
-        }
-
-        if (isRealConsole)
-        {
-            // ===== Real Windows Console =====
-            wchar_t commandbuf[256];
-            DWORD charsRead = 0;
-
-            if (ReadConsoleW(hStdIn, commandbuf,
-                sizeof(commandbuf) / sizeof(wchar_t) - 1,
-                &charsRead, nullptr))
+            size_t wlen = wcslen(commandbuf);
+            //by leewheel 20260201 - Debug: fgetws succeeded (COMMENTED OUT - debugging complete)
+            //printf("[TRACE] CLI: fgetws() succeeded, read %zu wide chars\n", wlen);
+            //fflush(stdout);
+            //
+            //// Print first few chars for debugging
+            //printf("[TRACE] CLI: First 5 wide chars (hex): ");
+            //for (size_t i = 0; i < std::min(wlen, size_t(5)); ++i)
+            //{
+            //    printf("%04X ", (unsigned int)commandbuf[i]);
+            //}
+            //printf("\n");
+            //fflush(stdout);
+            //end leewheel
+            
+            if (!WStrToUtf8(commandbuf, wlen, command))
             {
-                if (charsRead > 0)
-                {
-                    commandbuf[charsRead] = L'\0';
-                    if (!WStrToUtf8(commandbuf, charsRead, command))
-                    {
-                        PrintCliPrefix();
-                        continue;
-                    }
-                }
+                //by leewheel 20260201 - Debug: Conversion failed (COMMENTED OUT - debugging complete)
+                //printf("[TRACE] CLI: ERROR - WStrToUtf8() conversion failed!\n");
+                //fflush(stdout);
+                //end leewheel
+                PrintCliPrefix();
+                continue;
             }
+            
+            //by leewheel 20260201 - Debug: Conversion succeeded (COMMENTED OUT - debugging complete)
+            //printf("[TRACE] CLI: WStrToUtf8() succeeded, UTF-8 string: '%s' (length: %zu)\n", command.c_str(), command.length());
+            //fflush(stdout);
+            //end leewheel
         }
         else
         {
-            // ===== Redirected input (pipe) =====
-            if (!std::getline(std::cin, command))
-            {
-                World::StopNow(SHUTDOWN_EXIT_CODE);
-                break;
-            }
+            //by leewheel 20260201 - Debug: fgetws failed (COMMENTED OUT - debugging complete)
+            //printf("[TRACE] CLI: ERROR - fgetws() returned NULL!\n");
+            //fflush(stdout);
+            //if (feof(stdin))
+            //{
+            //    printf("[TRACE] CLI: stdin EOF detected\n");
+            //    fflush(stdout);
+            //}
+            //if (ferror(stdin))
+            //{
+            //    printf("[TRACE] CLI: stdin error detected\n");
+            //    fflush(stdout);
+            //}
+            //end leewheel
         }
-
+        //end leewheel
 #else
         char* command_str = readline(CLI_PREFIX);
         ::rl_bind_key('\t', ::rl_complete);
@@ -213,11 +248,25 @@ void CliThread()
 
         if (!command.empty())
         {
+            //by leewheel 20260201 - Debug: Print command before processing (COMMENTED OUT - debugging complete)
+            //printf("[TRACE] CLI: Command not empty, length: %zu, content: '%s'\n", command.length(), command.c_str());
+            //fflush(stdout);
+            //end leewheel
+            
             std::size_t nextLineIndex = command.find_first_of("\r\n");
             if (nextLineIndex != std::string::npos)
             {
+                //by leewheel 20260201 - Debug: Print newline handling (COMMENTED OUT - debugging complete)
+                //printf("[TRACE] CLI: Found newline at position %zu\n", nextLineIndex);
+                //fflush(stdout);
+                //end leewheel
+                
                 if (nextLineIndex == 0)
                 {
+                    //by leewheel 20260201 - Debug: Empty command (COMMENTED OUT - debugging complete)
+                    //printf("[TRACE] CLI: Empty command (newline at position 0), skipping\n");
+                    //fflush(stdout);
+                    //end leewheel
 #if AC_PLATFORM == AC_PLATFORM_WINDOWS
                     PrintCliPrefix();
 #endif
@@ -225,10 +274,24 @@ void CliThread()
                 }
 
                 command.erase(nextLineIndex);
+                //by leewheel 20260201 - Debug: Print after newline removal (COMMENTED OUT - debugging complete)
+                //printf("[TRACE] CLI: After newline removal: '%s' (length: %zu)\n", command.c_str(), command.length());
+                //fflush(stdout);
+                //end leewheel
             }
 
-            fflush(stdout);
+            //by leewheel 20260201 - Debug: Print before queuing command (COMMENTED OUT - debugging complete)
+            //printf("[TRACE] CLI: Queuing command to World: '%s'\n", command.c_str());
+            //fflush(stdout);
+            //end leewheel
+
             sWorld->QueueCliCommand(new CliCommandHolder(nullptr, command.c_str(), &utf8print, &commandFinished));
+            
+            //by leewheel 20260201 - Debug: Print after queuing (COMMENTED OUT - debugging complete)
+            //printf("[TRACE] CLI: Command queued successfully\n");
+            //fflush(stdout);
+            //end leewheel
+            
 #if AC_PLATFORM != AC_PLATFORM_WINDOWS
             add_history(command.c_str());
 #endif

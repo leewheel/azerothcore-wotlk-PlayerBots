@@ -30,6 +30,7 @@
 #include <mysql.h>
 #include <mysqld_error.h>
 
+
 MySQLConnectionInfo::MySQLConnectionInfo(std::string_view infoString)
 {
     std::vector<std::string_view> tokens = Acore::Tokenize(infoString, ';', true);
@@ -223,7 +224,11 @@ bool MySQLConnection::Execute(PreparedStatementBase* stmt)
 #endif
     {
         uint32 lErrno = mysql_errno(m_Mysql);
-        LOG_ERROR("sql.sql", "SQL(p): {}\n [ERROR]: [{}] {}", m_mStmt->getQueryString(), lErrno, mysql_stmt_error(msql_STMT));
+        // 使用标准宏判断，如果不是重复键错误，则打印日志
+        if (lErrno != ER_DUP_ENTRY)
+        {
+            LOG_ERROR("sql.sql", "SQL(p): {}\n [ERROR]: [{}] {}", m_mStmt->getQueryString(), lErrno, mysql_stmt_error(msql_STMT));
+        }
 
         if (_HandleMySQLErrno(lErrno, mysql_stmt_error(msql_STMT)))  // If it returns true, an error was handled successfully (i.e. reconnection)
             return Execute(stmt);       // Try again
@@ -235,8 +240,11 @@ bool MySQLConnection::Execute(PreparedStatementBase* stmt)
     if (mysql_stmt_execute(msql_STMT))
     {
         uint32 lErrno = mysql_errno(m_Mysql);
-        LOG_ERROR("sql.sql", "SQL(p): {}\n [ERROR]: [{}] {}", m_mStmt->getQueryString(), lErrno, mysql_stmt_error(msql_STMT));
-
+        // 使用标准宏判断，如果不是重复键错误，则打印日志
+        if (lErrno != ER_DUP_ENTRY)
+        {
+            LOG_ERROR("sql.sql", "SQL(p): {}\n [ERROR]: [{}] {}", m_mStmt->getQueryString(), lErrno, mysql_stmt_error(msql_STMT));
+        }
         if (_HandleMySQLErrno(lErrno, mysql_stmt_error(msql_STMT)))  // If it returns true, an error was handled successfully (i.e. reconnection)
             return Execute(stmt);       // Try again
 
@@ -275,8 +283,11 @@ bool MySQLConnection::_Query(PreparedStatementBase* stmt, MySQLPreparedStatement
 #endif
     {
         uint32 lErrno = mysql_errno(m_Mysql);
-        LOG_ERROR("sql.sql", "SQL(p): {}\n [ERROR]: [{}] {}", m_mStmt->getQueryString(), lErrno, mysql_stmt_error(msql_STMT));
-
+        // 使用标准宏判断，如果不是重复键错误，则打印日志
+        if (lErrno != ER_DUP_ENTRY)
+        {
+            LOG_ERROR("sql.sql", "SQL(p): {}\n [ERROR]: [{}] {}", m_mStmt->getQueryString(), lErrno, mysql_stmt_error(msql_STMT));
+        }
         if (_HandleMySQLErrno(lErrno, mysql_stmt_error(msql_STMT)))  // If it returns true, an error was handled successfully (i.e. reconnection)
             return _Query(stmt, mysqlStmt, pResult, pRowCount, pFieldCount);       // Try again
 
@@ -287,8 +298,11 @@ bool MySQLConnection::_Query(PreparedStatementBase* stmt, MySQLPreparedStatement
     if (mysql_stmt_execute(msql_STMT))
     {
         uint32 lErrno = mysql_errno(m_Mysql);
-        LOG_ERROR("sql.sql", "SQL(p): {}\n [ERROR]: [{}] {}", m_mStmt->getQueryString(), lErrno, mysql_stmt_error(msql_STMT));
-
+        // 使用标准宏判断，如果不是重复键错误，则打印日志
+        if (lErrno != ER_DUP_ENTRY)
+        {
+            LOG_ERROR("sql.sql", "SQL(p): {}\n [ERROR]: [{}] {}", m_mStmt->getQueryString(), lErrno, mysql_stmt_error(msql_STMT));
+        }
         if (_HandleMySQLErrno(lErrno, mysql_stmt_error(msql_STMT)))  // If it returns true, an error was handled successfully (i.e. reconnection)
             return _Query(stmt, mysqlStmt, pResult, pRowCount, pFieldCount);      // Try again
 

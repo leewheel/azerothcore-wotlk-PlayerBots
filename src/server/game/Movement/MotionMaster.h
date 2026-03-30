@@ -36,18 +36,18 @@ class Unit;
 // values 0 ... MAX_DB_MOTION_TYPE-1 used in DB
 enum MovementGeneratorType
 {
-    IDLE_MOTION_TYPE      = 0,                              // IdleMovementGenerator.h
-    RANDOM_MOTION_TYPE    = 1,                              // RandomMovementGenerator.h
-    WAYPOINT_MOTION_TYPE  = 2,                              // WaypointMovementGenerator.h
-    MAX_DB_MOTION_TYPE    = 3,                              // *** this and below motion types can't be set in DB.
+    IDLE_MOTION_TYPE = 0,                              // IdleMovementGenerator.h
+    RANDOM_MOTION_TYPE = 1,                              // RandomMovementGenerator.h
+    WAYPOINT_MOTION_TYPE = 2,                              // WaypointMovementGenerator.h
+    MAX_DB_MOTION_TYPE = 3,                              // *** this and below motion types can't be set in DB.
     ANIMAL_RANDOM_MOTION_TYPE = MAX_DB_MOTION_TYPE,         // AnimalRandomMovementGenerator.h
-    CONFUSED_MOTION_TYPE  = 4,                              // ConfusedMovementGenerator.h
-    CHASE_MOTION_TYPE     = 5,                              // TargetedMovementGenerator.h
-    HOME_MOTION_TYPE      = 6,                              // HomeMovementGenerator.h
-    FLIGHT_MOTION_TYPE    = 7,                              // WaypointMovementGenerator.h
-    POINT_MOTION_TYPE     = 8,                              // PointMovementGenerator.h
-    FLEEING_MOTION_TYPE   = 9,                              // FleeingMovementGenerator.h
-    DISTRACT_MOTION_TYPE  = 10,                             // IdleMovementGenerator.h
+    CONFUSED_MOTION_TYPE = 4,                              // ConfusedMovementGenerator.h
+    CHASE_MOTION_TYPE = 5,                              // TargetedMovementGenerator.h
+    HOME_MOTION_TYPE = 6,                              // HomeMovementGenerator.h
+    FLIGHT_MOTION_TYPE = 7,                              // WaypointMovementGenerator.h
+    POINT_MOTION_TYPE = 8,                              // PointMovementGenerator.h
+    FLEEING_MOTION_TYPE = 9,                              // FleeingMovementGenerator.h
+    DISTRACT_MOTION_TYPE = 10,                             // IdleMovementGenerator.h
     ASSISTANCE_MOTION_TYPE = 11,                            // PointMovementGenerator.h (first part of flee for assistance)
     ASSISTANCE_DISTRACT_MOTION_TYPE = 12,                   // IdleMovementGenerator.h (second part of flee for assistance)
     TIMED_FLEEING_MOTION_TYPE = 13,                         // FleeingMovementGenerator.h (alt.second part of flee for assistance)
@@ -69,10 +69,10 @@ enum MovementSlot
 
 enum MMCleanFlag
 {
-    MMCF_NONE   = 0x00,
+    MMCF_NONE = 0x00,
     MMCF_UPDATE = 0x01, // Clear or Expire called from update
-    MMCF_RESET  = 0x02, // Flag if need top()->Reset()
-    MMCF_INUSE  = 0x04, // pussywizard: Flag if in MotionMaster::UpdateMotion
+    MMCF_RESET = 0x02, // Flag if need top()->Reset()
+    MMCF_INUSE = 0x04, // pussywizard: Flag if in MotionMaster::UpdateMotion
 };
 
 enum RotateDirection
@@ -83,26 +83,26 @@ enum RotateDirection
 
 enum ForcedMovement
 {
-    FORCED_MOVEMENT_NONE    = 0,
-    FORCED_MOVEMENT_WALK    = 1,
-    FORCED_MOVEMENT_RUN     = 2,
+    FORCED_MOVEMENT_NONE = 0,
+    FORCED_MOVEMENT_WALK = 1,
+    FORCED_MOVEMENT_RUN = 2,
 
     FORCED_MOVEMENT_MAX
 };
 
 enum class PathSource
 {
-    WAYPOINT_MGR        = 0,
-    SMART_WAYPOINT_MGR  = 1,
+    WAYPOINT_MGR = 0,
+    SMART_WAYPOINT_MGR = 1,
 };
 
 enum class AnimTier : uint8
 {
-    Ground      = 0,
-    Swim        = 1,
-    Hover       = 2,
-    Fly         = 3,
-    Submerged   = 4,
+    Ground = 0,
+    Swim = 1,
+    Hover = 2,
+    Fly = 3,
+    Submerged = 4,
     Max
 };
 
@@ -238,10 +238,14 @@ public:
     void MoveConfused();
     void MoveFleeing(Unit* enemy, uint32 time = 0);
     void MovePoint(uint32 id, const Position& pos, ForcedMovement forcedMovement = FORCED_MOVEMENT_NONE, float speed = 0.f, bool generatePath = true, bool forceDestination = true, std::optional<AnimTier> animTier = std::nullopt)
-    { MovePoint(id, pos.m_positionX, pos.m_positionY, pos.m_positionZ, forcedMovement, speed, pos.GetOrientation(), generatePath, forceDestination, MOTION_SLOT_ACTIVE, animTier); }
+    {
+        MovePoint(id, pos.m_positionX, pos.m_positionY, pos.m_positionZ, forcedMovement, speed, pos.GetOrientation(), generatePath, forceDestination, MOTION_SLOT_ACTIVE, animTier);
+    }
     void MovePoint(uint32 id, float x, float y, float z, ForcedMovement forcedMovement = FORCED_MOVEMENT_NONE, float speed = 0.f, float orientation = 0.0f, bool generatePath = true, bool forceDestination = true, MovementSlot slot = MOTION_SLOT_ACTIVE, std::optional<AnimTier> animTier = std::nullopt);
     void MoveSplinePath(Movement::PointsArray* path, ForcedMovement forcedMovement = FORCED_MOVEMENT_NONE);
     void MovePath(uint32 path_id, ForcedMovement forcedMovement = FORCED_MOVEMENT_NONE, PathSource pathSource = PathSource::WAYPOINT_MGR);
+
+
 
     // These two movement types should only be used with creatures having landing/takeoff animations
     void MoveLand(uint32 id, Position const& pos, float speed = 0.0f);
@@ -254,7 +258,9 @@ public:
     void MoveKnockbackFrom(float srcX, float srcY, float speedXY, float speedZ);
     void MoveJumpTo(float angle, float speedXY, float speedZ);
     void MoveJump(Position const& pos, float speedXY, float speedZ, uint32 id = 0)
-    { MoveJump(pos.m_positionX, pos.m_positionY, pos.m_positionZ, speedXY, speedZ, id); };
+    {
+        MoveJump(pos.m_positionX, pos.m_positionY, pos.m_positionZ, speedXY, speedZ, id);
+    };
     void MoveJump(float x, float y, float z, float speedXY, float speedZ, uint32 id = 0, Unit const* target = nullptr);
     void MoveFall(uint32 id = 0, bool addFlagForNPC = false);
 

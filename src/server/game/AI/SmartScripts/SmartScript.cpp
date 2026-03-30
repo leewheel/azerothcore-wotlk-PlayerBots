@@ -231,7 +231,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
 
             if (!sCreatureTextMgr->TextExist(talker->GetEntry(), uint8(e.action.talk.textGroupID)))
             {
-                LOG_ERROR("sql.sql", "SmartScript::ProcessAction: SMART_ACTION_TALK: EntryOrGuid {} SourceType {} EventType {} TargetType {} using non-existent Text id {} for talker {}, ignored.", e.entryOrGuid, e.GetScriptType(), e.GetEventType(), e.GetTargetType(), e.action.talk.textGroupID, talker->GetEntry());
+                LOG_ERROR("sql.sql", "SAI错误，请忽略! SmartScript::ProcessAction: SMART_ACTION_TALK: EntryOrGuid {} SourceType {} EventType {} TargetType {} using non-existent Text id {} for talker {}, ignored.", e.entryOrGuid, e.GetScriptType(), e.GetEventType(), e.GetTargetType(), e.action.talk.textGroupID, talker->GetEntry());
                 break;
             }
 
@@ -239,9 +239,8 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
             mLastTextID = e.action.talk.textGroupID;
             mTextTimer = e.action.talk.duration;
             mUseTextTimer = true;
-
-            talker->AI()->Talk(e.action.talk.textGroupID, talkTarget, Milliseconds(e.action.talk.delay));
-            LOG_DEBUG("sql.sql", "SmartScript::ProcessAction: SMART_ACTION_TALK: talker: {} ({}), textId: {}", talker->GetName(), talker->GetGUID().ToString(), mLastTextID);
+            sCreatureTextMgr->SendChat(talker, uint8(e.action.talk.textGroupID), talkTarget);
+            LOG_DEBUG("sql.sql", "SAI错误，请忽略! SmartScript::ProcessAction: SMART_ACTION_TALK: talker: {} ({}), textId: {}", talker->GetName(), talker->GetGUID().ToString(), mLastTextID);
             break;
         }
         case SMART_ACTION_SIMPLE_TALK:

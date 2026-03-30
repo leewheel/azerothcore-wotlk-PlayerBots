@@ -17,10 +17,30 @@
 
 // This is where scripts' loading functions should be declared:
 // void MyExampleScript()
+void AddSC_quest_choes_of_Tortured_Souls();
+//By Leewheel 20260203 - PVP装备自动装备系统
+void AddSC_pvp_gear_auto_equip();
+//End By Leewheel
+//By Leewheel 20260204 - PVP法术施放系统 (已修复 2026-02-13)
+void AddSC_pvp_spell_cast();
+//End By Leewheel
+//By Leewheel 20260213 - 玩家机器人中文命令系统
+//void AddPlayerBotsChsCommandsScripts();
+//End By Leewheel
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
 void AddCustomScripts()
 {
     // MyExampleScript()
+    AddSC_quest_choes_of_Tortured_Souls();
+    //By Leewheel 20260203
+    AddSC_pvp_gear_auto_equip();
+    //End By Leewheel
+    //By Leewheel 20260204 - PVP法术施放系统 (已修复 2026-02-13)
+    AddSC_pvp_spell_cast();
+    //End By Leewheel
+    //By Leewheel 20260213 - 玩家机器人中文命令系统
+   /* AddPlayerBotsChsCommandsScripts();*/
+    //End By Leewheel
 }

@@ -4896,7 +4896,7 @@ void Player::_LoadArenaTeamInfo()
             ArenaTeamMember const* member = arenaTeam->GetMember(GetGUID());
             if (!member)
             {
-                LOG_ERROR("bg.arena", "Player::_LoadArenaTeamInfo: No members in the arena team ({}) was found.", arenaTeamId);
+                LOG_INFO("bg.arena", "Player::_LoadArenaTeamInfo: No members in the arena team ({}) was found.", arenaTeamId);
                 continue;
             }
             uint8 slot = itr.second;

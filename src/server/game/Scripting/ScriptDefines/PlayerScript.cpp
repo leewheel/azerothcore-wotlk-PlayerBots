@@ -280,7 +280,7 @@ void ScriptMgr::OnPlayerAddToBattleground(Player* player, Battleground* bg)
     CALL_ENABLED_HOOKS(PlayerScript, PLAYERHOOK_ON_ADD_TO_BATTLEGROUND, script->OnPlayerAddToBattleground(player, bg));
 }
 
-void ScriptMgr::OnPlayerQueueRandomDungeon(Player* player, uint32 & rDungeonId)
+void ScriptMgr::OnPlayerQueueRandomDungeon(Player* player, uint32& rDungeonId)
 {
     CALL_ENABLED_HOOKS(PlayerScript, PLAYERHOOK_ON_QUEUE_RANDOM_DUNGEON, script->OnPlayerQueueRandomDungeon(player, rDungeonId));
 }
@@ -590,12 +590,12 @@ bool ScriptMgr::OnPlayerHasActivePowerType(Player const* player, Powers power)
     CALL_ENABLED_BOOLEAN_HOOKS_WITH_DEFAULT_FALSE(PlayerScript, PLAYERHOOK_ON_PLAYER_HAS_ACTIVE_POWER_TYPE, script->OnPlayerHasActivePowerType(player, power));
 }
 
-void ScriptMgr::OnPlayerUpdateGatheringSkill(Player *player, uint32 skillId, uint32 currentLevel, uint32 gray, uint32 green, uint32 yellow, uint32 &gain)
+void ScriptMgr::OnPlayerUpdateGatheringSkill(Player* player, uint32 skillId, uint32 currentLevel, uint32 gray, uint32 green, uint32 yellow, uint32& gain)
 {
     CALL_ENABLED_HOOKS(PlayerScript, PLAYERHOOK_ON_UPDATE_GATHERING_SKILL, script->OnPlayerUpdateGatheringSkill(player, skillId, currentLevel, gray, green, yellow, gain));
 }
 
-void ScriptMgr::OnPlayerUpdateCraftingSkill(Player *player, SkillLineAbilityEntry const* skill, uint32 currentLevel, uint32& gain)
+void ScriptMgr::OnPlayerUpdateCraftingSkill(Player* player, SkillLineAbilityEntry const* skill, uint32 currentLevel, uint32& gain)
 {
     CALL_ENABLED_HOOKS(PlayerScript, PLAYERHOOK_ON_UPDATE_CRAFTING_SKILL, script->OnPlayerUpdateCraftingSkill(player, skill, currentLevel, gain));
 }

@@ -1434,7 +1434,13 @@ void Group::RemovePlayerFromRolls(ObjectGuid guid)
 
 void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
 {
+  
+
     Roll* roll = *rollI;
+
+    // 关键修复：对投票表做快照，防止遍历时被修改
+    Roll::PlayerVote votes = roll->playerVote;
+
     if (!roll->isValid())                                   // is loot already deleted ?
     {
         RollId.erase(rollI);
@@ -1451,12 +1457,15 @@ void Group::CountTheRoll(Rolls::iterator rollI, Map* allowedMap)
             ObjectGuid maxguid; // pussywizard: start with 0 >_>
             Player* player = nullptr;
 
-            for (Roll::PlayerVote::const_iterator itr = roll->playerVote.begin(); itr != roll->playerVote.end(); ++itr)
+            for (Roll::PlayerVote::const_iterator itr = votes.begin();
+                itr != votes.end(); ++itr)
             {
                 if (itr->second != NEED)
                     continue;
 
-                player = ObjectAccessor::FindPlayer(itr->first);
+                player = ObjectAccessor::FindConnectedPlayer(itr->first);
+                if (!player)
+                    continue;
                 if (!player || (allowedMap != nullptr && player->FindMap() != allowedMap))
                 {
                     --roll->totalNeed;

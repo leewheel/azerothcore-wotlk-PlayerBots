@@ -1,5 +1,4 @@
--- DB update 2026_01_06_01 -> 2026_01_07_00
---
+
 DELETE FROM `smart_scripts` WHERE (`source_type` = 0 AND `entryorguid` = 30134);
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `event_param6`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
 (30134, 0, 0, 13, 27, 0, 100, 512, 0, 0, 0, 0, 0, 0, 53, 2, 30134, 0, 0, 500, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 'Brann\'s Flying Machine - On Passenger Boarded - Start Waypoint Path 30134'),
@@ -35,3 +34,42 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 DELETE FROM `conditions` WHERE (`SourceTypeOrReferenceId` = 13) AND (`SourceGroup` = 1) AND (`SourceEntry` = 55089) AND (`SourceId` = 0) AND (`ElseGroup` = 0) AND (`ConditionTypeOrReference` = 31) AND (`ConditionTarget` = 0) AND (`ConditionValue1` = 3) AND (`ConditionValue2` = 30134) AND (`ConditionValue3` = 0);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (13, 1, 55089, 0, 0, 31, 0, 3, 30134, 0, 0, 0, 0, '', '55089 \'Mount Brann\'s Flying Machine\' Targets Brann\'s Flying Machine (30134)');
+
+-- DB update 2026_01_07_00 -> 2026_01_07_01
+--
+UPDATE `quest_template_addon` SET `SpecialFlags` = `SpecialFlags`|1 WHERE (`ID` = 13845);
+SET @entry             := 1000003;
+SET @CreatureDisplayID := 3280;
+SET @name              := 'Arena 3v3 Solo';
+
+DELETE FROM `creature_template` WHERE `entry` = @entry;
+INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `speed_swim`, `speed_flight`, `detection_range`, `scale`, `rank`, `dmgschool`, `DamageModifier`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `mechanic_immune_mask`, `spell_school_immune_mask`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES
+(@entry, 0, 0, 0, 0, 0, @name, '', '', 0, 80, 80, 2, 35, 1, 1, 1.14286, 1, 1, 20, 1, 1, 0, 1, 1, 1, 1, 1, 1, 131078, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 138936390, 0, 0, 'npc_solo3v3', '12340');
+
+DELETE FROM `creature_template_model` WHERE `CreatureID` = @entry;
+INSERT INTO `creature_template_model` (`CreatureID`, `Idx`, `CreatureDisplayID`, `DisplayScale`, `Probability`, `VerifiedBuild`) VALUES
+(@entry, 0, @CreatureDisplayID, 1, 1, 0);
+
+-- npc text
+SET @npc_text_3v3_soloq := "This NPC enables you to join 3v3soloQ unrated arenas, create a 3v3soloQ arena team, and join 3v3soloQ rated arenas.$B$BIf you prefer not to interact with the NPC, you can use the following commands to join or create the arena:$B$B.qsolo rated$B$B.qsolo unrated$B$BNote that if you don’t already have a 3v3soloQ arena team, using .qsolo rated will automatically create one for you.";
+DELETE FROM `npc_text` WHERE `ID` = 1000004;
+INSERT INTO `npc_text` (`id`, `text0_0`, `text0_1`, `Probability0`) VALUES
+(1000004, @npc_text_3v3_soloq, @npc_text_3v3_soloq, 1);
+
+-- Command
+DELETE FROM `command` WHERE `name` IN ('qsolo', 'qsolo rated', 'qsolo unrated', 'testqsolo');
+INSERT INTO `command` (`name`, `security`, `help`) VALUES
+('qsolo', 0, '.qsolo rated/unrated\nJoin arena 3v3soloQ rated or unrated'),
+('qsolo rated', 0, 'Syntax .qsolo rated\nJoin arena 3v3soloQ rated'),
+('qsolo unrated', 0, 'Syntax .qsolo unrated\nJoin arena 3v3soloQ unrated'),
+('testqsolo', 4, '.testqsolo -> join arena 3v3soloQ for testing');
+
+-- DB update 2026_01_07_01 -> 2026_01_07_02
+--
+DELETE FROM `conditions` WHERE (`SourceTypeOrReferenceId` = 13) AND (`SourceGroup` = 7) AND (`SourceEntry` = 54469) AND (`SourceId` = 0) AND (`ElseGroup` = 0) AND (`ConditionTypeOrReference` = 31) AND (`ConditionTarget` = 0) AND (`ConditionValue1` = 3) AND (`ConditionValue2` = 29333) AND (`ConditionValue3` = 0);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(13, 7, 54469, 0, 0, 31, 0, 3, 29333, 0, 0, 0, 0, '', 'Only useful versus Onslaught Gryphon Rider.');
+
+DELETE FROM `conditions` WHERE (`SourceTypeOrReferenceId` = 13) AND (`SourceGroup` = 1) AND (`SourceEntry` = 74541) AND (`SourceId` = 0) AND (`ElseGroup` = 0) AND (`ConditionTypeOrReference` = 31) AND (`ConditionTarget` = 0) AND (`ConditionValue1` = 3) AND (`ConditionValue2` = 29333) AND (`ConditionValue3` = 0);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(13, 1, 74541, 0, 0, 31, 0, 3, 29333, 0, 0, 0, 0, '', 'Only useful versus Onslaught Gryphon Rider.');
