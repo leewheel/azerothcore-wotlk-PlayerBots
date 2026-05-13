@@ -22,6 +22,7 @@
 #include "CliRunnable.h"
 #include "Config.h"
 #include "ObjectMgr.h"
+#include "Util.h"
 #include "World.h"
 #include <fmt/core.h>
 
@@ -38,9 +39,39 @@
 
 static constexpr char CLI_PREFIX[] = "AC> ";
 
+/// Write a string to the Windows console using WriteConsoleW (bypasses stdout stream)
+/// Falls back to fmt::print on non-Windows or when console handle is unavailable
+static inline void WriteToConsole(std::string_view str)
+{
+#if AC_PLATFORM == AC_PLATFORM_WINDOWS
+    if (!str.empty())
+    {
+        std::wstring wstr;
+        if (Utf8toWStr(str, wstr))
+        {
+            HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+            if (hOut != INVALID_HANDLE_VALUE)
+            {
+                DWORD consoleMode = 0;
+                if (GetConsoleMode(hOut, &consoleMode))
+                {
+                    DWORD written = 0;
+                    WriteConsoleW(hOut, wstr.c_str(), static_cast<DWORD>(wstr.size()), &written, nullptr);
+                    return; // <-- success path
+                }
+            }
+        }
+    }
+    // Fallback to fmt::print (stdout) — THIS IS THE BROKEN PATH
+    LOG_ERROR("server.worldserver", "[CLI-DIAG] WriteToConsole FELL BACK to fmt::print! len={}", str.length());
+#endif
+    fmt::print("{}", str);
+    fflush(stdout);
+}
+
 static inline void PrintCliPrefix()
 {
-    fmt::print(CLI_PREFIX);
+    WriteToConsole(CLI_PREFIX);
 }
 
 #if AC_PLATFORM != AC_PLATFORM_WINDOWS
@@ -74,38 +105,14 @@ namespace Acore::Impl::Readline
 }
 #endif
 
-//by leewheel 20260131 - Fix: Add fflush for Windows to ensure command output is displayed immediately
 void utf8print(void* /*arg*/, std::string_view str)
 {
-    //by leewheel 20260201 - Debug: Print output (COMMENTED OUT - debugging complete)
-    //printf("[TRACE] utf8print: Called with string length: %zu\n", str.length());
-    //fflush(stdout);
-    //end leewheel
-    
-    fmt::print("{}", str);
-    fflush(stdout);
-    
-    //by leewheel 20260201 - Debug: After flush (COMMENTED OUT - debugging complete)
-    //printf("[TRACE] utf8print: Output flushed\n");
-    //fflush(stdout);
-    //end leewheel
+    WriteToConsole(str);
 }
-//end leewheel
 
 void commandFinished(void*, bool success)
 {
-    //by leewheel 20260201 - Debug: Print callback (COMMENTED OUT - debugging complete)
-    //printf("[TRACE] commandFinished: Called with success: %d\n", success ? 1 : 0);
-    //fflush(stdout);
-    //end leewheel
-    
     PrintCliPrefix();
-    fflush(stdout);
-    
-    //by leewheel 20260201 - Debug: After printing prefix (COMMENTED OUT - debugging complete)
-    //printf("[TRACE] commandFinished: Prefix printed and flushed\n");
-    //fflush(stdout);
-    //end leewheel
 }
 
 #ifdef linux
@@ -126,6 +133,9 @@ int kb_hit_return()
 /// %Thread start
 void CliThread()
 {
+    LOG_ERROR("server.worldserver", "[CLI-DIAG] CliThread STARTED");
+
+
 #if AC_PLATFORM == AC_PLATFORM_WINDOWS
     // Set console code pages to UTF-8
     SetConsoleCP(CP_UTF8);
@@ -189,51 +199,22 @@ void CliThread()
         if (fgetws(commandbuf, 256, stdin))
         {
             size_t wlen = wcslen(commandbuf);
-            //by leewheel 20260201 - Debug: fgetws succeeded (COMMENTED OUT - debugging complete)
-            //printf("[TRACE] CLI: fgetws() succeeded, read %zu wide chars\n", wlen);
-            //fflush(stdout);
-            //
-            //// Print first few chars for debugging
-            //printf("[TRACE] CLI: First 5 wide chars (hex): ");
-            //for (size_t i = 0; i < std::min(wlen, size_t(5)); ++i)
-            //{
-            //    printf("%04X ", (unsigned int)commandbuf[i]);
-            //}
-            //printf("\n");
-            //fflush(stdout);
-            //end leewheel
             
             if (!WStrToUtf8(commandbuf, wlen, command))
             {
-                //by leewheel 20260201 - Debug: Conversion failed (COMMENTED OUT - debugging complete)
-                //printf("[TRACE] CLI: ERROR - WStrToUtf8() conversion failed!\n");
-                //fflush(stdout);
-                //end leewheel
+                LOG_ERROR("server.worldserver", "[CLI-DIAG] WStrToUtf8 conversion FAILED for {} wide chars", wlen);
                 PrintCliPrefix();
                 continue;
             }
             
-            //by leewheel 20260201 - Debug: Conversion succeeded (COMMENTED OUT - debugging complete)
-            //printf("[TRACE] CLI: WStrToUtf8() succeeded, UTF-8 string: '%s' (length: %zu)\n", command.c_str(), command.length());
-            //fflush(stdout);
-            //end leewheel
+            LOG_ERROR("server.worldserver", "[CLI-DIAG] Input received: '{}' (len={})", command, command.length());
         }
         else
         {
-            //by leewheel 20260201 - Debug: fgetws failed (COMMENTED OUT - debugging complete)
-            //printf("[TRACE] CLI: ERROR - fgetws() returned NULL!\n");
-            //fflush(stdout);
-            //if (feof(stdin))
-            //{
-            //    printf("[TRACE] CLI: stdin EOF detected\n");
-            //    fflush(stdout);
-            //}
-            //if (ferror(stdin))
-            //{
-            //    printf("[TRACE] CLI: stdin error detected\n");
-            //    fflush(stdout);
-            //}
-            //end leewheel
+            if (feof(stdin))
+                LOG_ERROR("server.worldserver", "[CLI-DIAG] fgetws returned NULL — stdin EOF");
+            else if (ferror(stdin))
+                LOG_ERROR("server.worldserver", "[CLI-DIAG] fgetws returned NULL — stdin ERROR");
         }
         //end leewheel
 #else
@@ -274,18 +255,13 @@ void CliThread()
                 }
 
                 command.erase(nextLineIndex);
-                //by leewheel 20260201 - Debug: Print after newline removal (COMMENTED OUT - debugging complete)
-                //printf("[TRACE] CLI: After newline removal: '%s' (length: %zu)\n", command.c_str(), command.length());
-                //fflush(stdout);
-                //end leewheel
             }
 
-            //by leewheel 20260201 - Debug: Print before queuing command (COMMENTED OUT - debugging complete)
-            //printf("[TRACE] CLI: Queuing command to World: '%s'\n", command.c_str());
-            //fflush(stdout);
-            //end leewheel
+            LOG_ERROR("server.worldserver", "[CLI-DIAG] Queuing command: '{}'", command);
 
             sWorld->QueueCliCommand(new CliCommandHolder(nullptr, command.c_str(), &utf8print, &commandFinished));
+            
+            LOG_ERROR("server.worldserver", "[CLI-DIAG] Command queued successfully");
             
             //by leewheel 20260201 - Debug: Print after queuing (COMMENTED OUT - debugging complete)
             //printf("[TRACE] CLI: Command queued successfully\n");

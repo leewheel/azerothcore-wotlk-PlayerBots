@@ -1022,33 +1022,18 @@ std::string CliHandler::GetAcoreString(uint32 entry) const
 
 void CliHandler::SendSysMessage(std::string_view str, bool /*escapeCharacters*/)
 {
-    //by leewheel 20260201 - Debug: Print SendSysMessage call (COMMENTED OUT - debugging complete)
-    //printf("[TRACE] CliHandler::SendSysMessage: Called!\n");
-    //printf("[TRACE] CliHandler::SendSysMessage: String length: %zu\n", str.length());
-    //printf("[TRACE] CliHandler::SendSysMessage: String content: '%.*s'\n", (int)std::min(str.length(), size_t(100)), str.data());
-    //printf("[TRACE] CliHandler::SendSysMessage: m_print pointer: %p\n", (void*)m_print);
-    //printf("[TRACE] CliHandler::SendSysMessage: m_callbackArg: %p\n", m_callbackArg);
-    //fflush(stdout);
-    //end leewheel
+    LOG_ERROR("server.worldserver", "[CLI-DIAG] SendSysMessage CALLED (len={} m_print={})", str.length(), (void*)m_print);
     
     if (m_print)
     {
-        //printf("[TRACE] CliHandler::SendSysMessage: Calling m_print with string\n");
-        //fflush(stdout);
+        LOG_ERROR("server.worldserver", "[CLI-DIAG] SendSysMessage calling m_print with: '{:.100}'", str);
         m_print(m_callbackArg, str);
-        //printf("[TRACE] CliHandler::SendSysMessage: Calling m_print with newline\n");
-        //fflush(stdout);
         m_print(m_callbackArg, "\r\n");
-        //printf("[TRACE] CliHandler::SendSysMessage: m_print calls completed\n");
-        //fflush(stdout);
     }
-    //by leewheel 20260201 - Debug: m_print is NULL (COMMENTED OUT - debugging complete)
-    //else
-    //{
-    //    printf("[TRACE] CliHandler::SendSysMessage: ERROR - m_print is NULL!\n");
-    //    fflush(stdout);
-    //}
-    //end leewheel
+    else
+    {
+        LOG_ERROR("server.worldserver", "[CLI-DIAG] SendSysMessage SKIPPED — m_print is NULL!");
+    }
 }
 
 bool CliHandler::ParseCommands(std::string_view str)

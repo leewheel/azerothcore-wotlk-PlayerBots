@@ -1563,26 +1563,13 @@ void World::ProcessCliCommands()
     void* callbackArg = nullptr;
     CliCommandHolder* command = nullptr;
     
-    //by leewheel 20260202 - Debug: Check if queue has commands (COMMENTED OUT - too noisy)
-    //printf("[TRACE] ProcessCliCommands: Checking command queue...\n");
-    //fflush(stdout);
-    //end leewheel
-    
     while (_cliCmdQueue.next(command))
     {
-        //by leewheel 20260201 - Debug: Print command processing start (COMMENTED OUT - debugging complete)
-        //printf("[TRACE] ProcessCliCommands: Got command from queue: '%s'\n", command->m_command);
-        //fflush(stdout);
-        //end leewheel
+        LOG_ERROR("server.worldserver", "[CLI-DIAG] Dequeued command: '{}' (zprint={} callbackArg={})",
+                 command->m_command, (void*)command->m_print, command->m_callbackArg);
         
-        LOG_DEBUG("server.worldserver", "CLI command under processing...");
         zprint = command->m_print;
         callbackArg = command->m_callbackArg;
-        
-        //by leewheel 20260201 - Debug: Print before creating CliHandler (COMMENTED OUT - debugging complete)
-        //printf("[TRACE] ProcessCliCommands: Creating CliHandler, zprint=%p, callbackArg=%p\n", (void*)zprint, callbackArg);
-        //fflush(stdout);
-        //end leewheel
         
         CliHandler handler(callbackArg, zprint);
         
@@ -1593,19 +1580,16 @@ void World::ProcessCliCommands()
         
         handler.ParseCommands(command->m_command);
         
-        //by leewheel 20260201 - Debug: Print after ParseCommands (COMMENTED OUT - debugging complete)
-        //printf("[TRACE] ProcessCliCommands: ParseCommands completed, HasSentErrorMessage: %d\n", handler.HasSentErrorMessage() ? 1 : 0);
-        //fflush(stdout);
-        //end leewheel
+        LOG_ERROR("server.worldserver", "[CLI-DIAG] ParseCommands done, HasSentErrorMessage={}", handler.HasSentErrorMessage());
         
         if (command->m_commandFinished)
         {
-            //by leewheel 20260201 - Debug: Print callback execution (COMMENTED OUT - debugging complete)
-            //printf("[TRACE] ProcessCliCommands: Calling commandFinished callback\n");
-            //fflush(stdout);
-            //end leewheel
-            
+            LOG_ERROR("server.worldserver", "[CLI-DIAG] Calling commandFinished callback (success={})", !handler.HasSentErrorMessage());
             command->m_commandFinished(callbackArg, !handler.HasSentErrorMessage());
+        }
+        else
+        {
+            LOG_ERROR("server.worldserver", "[CLI-DIAG] NO commandFinished callback set!");
         }
         
         //by leewheel 20260201 - Debug: Print before deleting command (COMMENTED OUT - debugging complete)
