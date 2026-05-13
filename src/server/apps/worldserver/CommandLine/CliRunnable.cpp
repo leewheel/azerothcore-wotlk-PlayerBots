@@ -1,3 +1,4 @@
+/*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify
@@ -81,7 +82,7 @@ void utf8print(void* /*arg*/, std::string_view str)
     //fflush(stdout);
     //end leewheel
     
-    fmt::print(str);
+    fmt::print("{}", str);
     fflush(stdout);
     
     //by leewheel 20260201 - Debug: After flush (COMMENTED OUT - debugging complete)
