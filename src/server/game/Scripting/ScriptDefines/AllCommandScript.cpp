@@ -17,6 +17,7 @@
 
 #include "AllCommandScript.h"
 #include "ChatCommand.h"
+#include "Log.h"
 #include "ScriptMgr.h"
 #include "ScriptMgrMacros.h"
 
@@ -27,7 +28,17 @@ void ScriptMgr::OnHandleDevCommand(Player* player, bool& enable)
 
 bool ScriptMgr::OnTryExecuteCommand(ChatHandler& handler, std::string_view cmdStr)
 {
-    CALL_ENABLED_BOOLEAN_HOOKS(AllCommandScript, ALLCOMMANDHOOK_ON_TRY_EXECUTE_COMMAND, !script->OnTryExecuteCommand(handler, cmdStr));
+    if (ScriptRegistry<AllCommandScript>::EnabledHooks[ALLCOMMANDHOOK_ON_TRY_EXECUTE_COMMAND].empty())
+        return true;
+    for (auto const& script : ScriptRegistry<AllCommandScript>::EnabledHooks[ALLCOMMANDHOOK_ON_TRY_EXECUTE_COMMAND])
+    {
+        bool scriptResult = script->OnTryExecuteCommand(handler, cmdStr);
+        LOG_ERROR("server.worldserver", "[CLI-DIAG] OnTryExecuteCommand: script='{}' returned {}",
+            script->GetName(), scriptResult);
+        if (!scriptResult)
+            return false;
+    }
+    return true;
 }
 
 bool ScriptMgr::OnBeforeIsInvokerVisible(std::string name, Acore::Impl::ChatCommands::CommandPermissions permissions, ChatHandler const& who)

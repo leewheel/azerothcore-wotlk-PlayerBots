@@ -325,47 +325,31 @@ namespace Acore::Impl::ChatCommands
 
     if (!sScriptMgr->OnTryExecuteCommand(handler, cmdStr))
     {
-        //by leewheel 20260202 - Debug: ScriptMgr blocked command (COMMENTED OUT - debugging complete)
-        //printf("[TRACE] TryExecuteCommand: sScriptMgr->OnTryExecuteCommand returned false, command blocked\n");
-        //fflush(stdout);
-        //end leewheel
+        LOG_ERROR("server.worldserver", "[CLI-DIAG] TryExecuteCommand: sScriptMgr->OnTryExecuteCommand consumed the command");
         return true;
     }
 
-    //by leewheel 20260202 - Debug: Check if command was found (COMMENTED OUT - debugging complete)
-    //printf("[TRACE] TryExecuteCommand: cmd=%p, cmdStr='%.*s', oldTail='%.*s'\n", 
-    //       (void*)cmd, (int)cmdStr.length(), cmdStr.data(), (int)oldTail.length(), oldTail.data());
-    //fflush(stdout);
-    //end leewheel
+    LOG_ERROR("server.worldserver", "[CLI-DIAG] TryExecuteCommand: cmd={} cmdStr='{}' oldTail='{}'",
+        (void*)cmd, cmdStr, oldTail);
 
     /* if we matched a command at some point, invoke it */
     if (cmd)
     {
-        //by leewheel 20260202 - Debug: Command found (COMMENTED OUT - debugging complete)
-        //bool isVisible = cmd->IsInvokerVisible(handler);
-        //printf("[TRACE] TryExecuteCommand: Command found, name='%s', IsInvokerVisible=%d\n", 
-        //       cmd->_name.c_str(), isVisible);
-        //fflush(stdout);
-        //end leewheel
+        LOG_ERROR("server.worldserver", "[CLI-DIAG] TryExecuteCommand: cmd='{}' IsInvokerVisible={} hasInvoker={}",
+            cmd->_name, cmd->IsInvokerVisible(handler), cmd->_invoker.operator bool());
 
         handler.SetSentErrorMessage(false);
         if (cmd->IsInvokerVisible(handler) && cmd->_invoker(&handler, oldTail))
         { /* invocation succeeded, log this */
-            //by leewheel 20260202 - Debug: Invoker succeeded (COMMENTED OUT - debugging complete)
-            //printf("[TRACE] TryExecuteCommand: Invoker succeeded\n");
-            //fflush(stdout);
-            //end leewheel
+            LOG_ERROR("server.worldserver", "[CLI-DIAG] TryExecuteCommand: Invoker returned TRUE");
 
             if (!handler.IsConsole())
                 LogCommandUsage(*handler.GetSession(), cmdStr);
         }
         else if (!handler.HasSentErrorMessage()) /* invocation failed, we should show usage */
         {
-            //by leewheel 20260202 - Debug: Invoker failed (COMMENTED OUT - debugging complete)
-            //printf("[TRACE] TryExecuteCommand: Invoker failed or not visible, HasSentErrorMessage=%d\n", 
-            //       handler.HasSentErrorMessage());
-            //fflush(stdout);
-            //end leewheel
+            LOG_ERROR("server.worldserver", "[CLI-DIAG] TryExecuteCommand: Invoker NOT called or returned FALSE. IsInvokerVisible={} HasSentErrorMessage={}",
+                cmd->IsInvokerVisible(handler), handler.HasSentErrorMessage());
 
             cmd->SendCommandHelp(handler);
             handler.SetSentErrorMessage(true);
@@ -374,10 +358,7 @@ namespace Acore::Impl::ChatCommands
         return true;
     }
 
-    //by leewheel 20260202 - Debug: No command found (COMMENTED OUT - debugging complete)
-    //printf("[TRACE] TryExecuteCommand: No command found\n");
-    //fflush(stdout);
-    //end leewheel
+    LOG_ERROR("server.worldserver", "[CLI-DIAG] TryExecuteCommand: No command matched");
 
     return false;
 }
